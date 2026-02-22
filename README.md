@@ -89,6 +89,16 @@ Wired headphones work better than Bluetooth for Wine audio.
 - Reconfigure wrapper: Right-click `outlands.app` → Show Package Contents → `Configure.app`
 - Razor profiles location: `drive_c/users/crossover/Application Data/Razor/`
 
+## Helper Scripts
+
+The `helpers/` directory contains optional utility scripts that are **not part of the official installation**. They are personal migration/backup tools — you must edit them to match your own setup before use.
+
+| Script | Description |
+|--------|-------------|
+| `helpers/sync-config.sh` | Backup, restore, and sync ClassicUO profiles/scripts between two Macs via SSH |
+
+See each script's header comments for usage and configuration instructions.
+
 ## Tested On
 
 - M3 MacBook Air, macOS Tahoe (26.x)
