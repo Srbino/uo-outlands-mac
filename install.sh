@@ -100,7 +100,7 @@ else
 fi
 
 STEP_CURRENT=0
-STEP_TOTAL=12
+STEP_TOTAL=13
 
 # ---------------------
 #  Logging Setup
@@ -665,22 +665,57 @@ else
     info "Wine prefix already exists"
 fi
 
+# Remove .ttc font entries from Wine registry -- SixLabors.Fonts cannot parse
+# TrueType Collection files and ClassicUO crashes with "Table 'name' is missing"
+for _reg in "${WRAPPER_PREFIX}/system.reg" "${WRAPPER_PREFIX}/user.reg"; do
+    if [[ -f "${_reg}" ]] && grep -q '\.ttc"' "${_reg}" 2>/dev/null; then
+        sed -i '' '/\.ttc"$/d' "${_reg}"
+    fi
+done
+info "Wine registry cleaned (removed .ttc font entries)"
+
+# Install Windows core fonts from macOS system into Wine prefix
+WINE_FONTS_DIR="${WRAPPER_PREFIX}/drive_c/windows/Fonts"
+mkdir -p "${WINE_FONTS_DIR}"
+FONT_COUNT=0
+for _f in "${WINE_FONTS_DIR}"/*.ttf; do
+    [[ -f "${_f}" ]] && FONT_COUNT=$((FONT_COUNT + 1))
+done
+if [[ "${FONT_COUNT}" -ge 10 ]]; then
+    info "Core fonts already installed (${FONT_COUNT} .ttf files)"
+else
+    MACOS_FONTS="/System/Library/Fonts/Supplemental"
+    FONTS_COPIED=0
+    if [[ -d "${MACOS_FONTS}" ]]; then
+        for pattern in "Arial" "Courier New" "Times New Roman" "Georgia" "Verdana" "Tahoma" "Trebuchet MS" "Comic Sans" "Impact" "Webdings"; do
+            for f in "${MACOS_FONTS}/${pattern}"*.ttf; do
+                [[ -f "${f}" ]] && cp "${f}" "${WINE_FONTS_DIR}/" 2>/dev/null && FONTS_COPIED=$((FONTS_COPIED + 1))
+            done
+        done
+    fi
+    if [[ "${FONTS_COPIED}" -gt 0 ]]; then
+        info "Copied ${FONTS_COPIED} core fonts from macOS system"
+    else
+        warn "No macOS system fonts found, game may have font issues"
+    fi
+fi
+
 # =============================================================================
 #  Step 10: Install .NET Runtimes
 # =============================================================================
 
 step "Installing .NET runtimes via winetricks"
 
-# Check .NET installation by looking at actual files in the prefix, not winetricks.log
-# (Sikarugir's winetricks wrapper does not create winetricks.log)
+# Check .NET installation by looking for actual DLL files, not just directories
+# (wineboot creates empty Framework dirs without real .NET installed)
 DOTNET_DIR="${WRAPPER_PREFIX}/drive_c/windows/Microsoft.NET/Framework"
 DOTNET_INSTALLED=false
-if [[ -d "${DOTNET_DIR}/v2.0.50727" ]] && [[ -d "${DOTNET_DIR}/v4.0.30319" ]]; then
+if [[ -f "${DOTNET_DIR}/v2.0.50727/mscorlib.dll" ]] && [[ -f "${DOTNET_DIR}/v4.0.30319/mscorlib.dll" ]]; then
     DOTNET_INSTALLED=true
 fi
 
 if [[ "${DOTNET_INSTALLED}" == true ]]; then
-    info ".NET already installed (v2.0 + v4.0 detected in prefix)"
+    info ".NET already installed (v2.0 + v4.0 mscorlib.dll found)"
 else
     for pkg in ${WINETRICKS_PACKAGES}; do
         warn "Installing ${pkg} (this may take several minutes)..."
@@ -724,33 +759,67 @@ OUTLANDS_EXE="${OUTLANDS_DIR}/Outlands.exe"
 if [[ -f "${OUTLANDS_EXE}" ]]; then
     info "Outlands already installed at: ${OUTLANDS_INSTALL_PATH}"
 else
-    TMPDIR_INSTALLER=$(mktemp -d)
-    TMPFILES+=("${TMPDIR_INSTALLER}")
-    INSTALLER_PATH="${TMPDIR_INSTALLER}/${OUTLANDS_INSTALLER_NAME}"
+    # Outlands.exe is a self-patching launcher -- download directly into the prefix.
+    # It will download game files on first run inside Wine.
+    mkdir -p "${OUTLANDS_DIR}"
 
-    warn "Downloading Outlands installer..."
-    download_file "${OUTLANDS_INSTALLER_URL}" "${INSTALLER_PATH}" "Outlands installer"
-    info "Installer downloaded ($(du -h "${INSTALLER_PATH}" | cut -f1))"
-
-    warn "Running Outlands installer inside Wine..."
-    echo ""
-    echo -e "  ${BOLD}>>> Follow the installer GUI, then CLOSE the installer <<<${NC}"
-    echo -e "  ${DIM}    The script will resume once all Wine windows are closed.${NC}"
-    echo ""
-    sikarugir_cli WSS-installer "${INSTALLER_PATH}"
-    info "Outlands installer finished"
+    warn "Downloading Outlands launcher..."
+    download_file "${OUTLANDS_INSTALLER_URL}" "${OUTLANDS_EXE}" "Outlands launcher"
 
     if [[ -f "${OUTLANDS_EXE}" ]]; then
-        info "Outlands.exe confirmed at: ${OUTLANDS_INSTALL_PATH}"
+        info "Outlands.exe placed at: ${OUTLANDS_INSTALL_PATH} ($(du -h "${OUTLANDS_EXE}" | cut -f1))"
     else
-        warn "Outlands.exe not found at expected path."
-        warn "You may need to run the installer manually via Sikarugir Configure."
-        warn "Expected: ${OUTLANDS_INSTALL_PATH}"
+        die "Failed to place Outlands.exe at: ${OUTLANDS_INSTALL_PATH}"
     fi
 fi
 
 # =============================================================================
-#  Step 12: Finishing Up
+#  Step 12: Fix Wine audio (SDL3 + CoreAudio)
+# =============================================================================
+
+step "Configuring audio (SDL3 DirectSound fix)"
+
+# ClassicUO uses FAudio → SDL3 → Wine WASAPI → CoreAudio. Wine's WASAPI
+# implementation has buffering issues with CoreAudio, causing crackling on
+# USB audio devices. Switching SDL3 to DirectSound backend avoids this.
+#
+# These env vars must be set BEFORE Sikarugir launches (Sikarugir doesn't
+# pass arbitrary plist keys as env vars). A LaunchAgent sets them at login.
+LAUNCH_AGENT_ID="com.sikarugir.${WRAPPER_NAME}.audio"
+LAUNCH_AGENT_DIR="$HOME/Library/LaunchAgents"
+LAUNCH_AGENT_PLIST="${LAUNCH_AGENT_DIR}/${LAUNCH_AGENT_ID}.plist"
+
+mkdir -p "${LAUNCH_AGENT_DIR}"
+
+cat > "${LAUNCH_AGENT_PLIST}" << PLISTEOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>${LAUNCH_AGENT_ID}</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/launchctl</string>
+		<string>setenv</string>
+		<string>SDL_AUDIODRIVER</string>
+		<string>directsound</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+</dict>
+</plist>
+PLISTEOF
+
+info "LaunchAgent created: ${LAUNCH_AGENT_PLIST}"
+
+# Also set it for the current session
+launchctl setenv SDL_AUDIODRIVER directsound 2>/dev/null || true
+launchctl setenv SDL_AUDIO_DEVICE_SAMPLE_FRAMES 4096 2>/dev/null || true
+info "SDL_AUDIODRIVER=directsound set for current session"
+
+# =============================================================================
+#  Step 13: Finishing Up
 # =============================================================================
 
 step "Finishing up"
@@ -773,12 +842,11 @@ echo ""
 echo -e "  ${BOLD}How to launch:${NC}"
 echo "    Double-click ${WRAPPER_NAME}.app in ${WRAPPER_DIR}"
 echo ""
-echo -e "  ${BOLD}Audio setup (important!):${NC}"
-echo "    macOS Wine audio often produces crackling/static by default."
-echo "    Fix: Open Audio MIDI Setup.app (Spotlight: 'audio midi')"
-echo "      -> Select your output device"
-echo "      -> Change sample rate to 48000 Hz or 96000 Hz"
-echo "    If using AirPods/Bluetooth: use wired headphones for best results."
+echo -e "  ${BOLD}Audio:${NC}"
+echo "    SDL_AUDIODRIVER=directsound (fixes CoreAudio crackling)"
+echo "    Set via LaunchAgent, persists across reboots."
+echo "    Wine does NOT hot-switch audio devices -- connect"
+echo "    AirPods/headphones BEFORE launching the game."
 echo ""
 echo -e "  ${BOLD}Tips:${NC}"
 echo "    - Switch Razor/Game windows: Cmd+\` (backtick)"
