@@ -70,7 +70,9 @@ BREW_CASK_SIKARUGIR="Sikarugir-App/sikarugir/sikarugir"
 
 # Logging
 LOG_DIR="$HOME/Library/Logs"
-LOG_FILE="${LOG_DIR}/outlands_install_$(date +%Y%m%d_%H%M%S).log"
+LOG_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+LOG_FILE="${LOG_DIR}/outlands_install_${LOG_TIMESTAMP}.log"
+DEBUG_LOG_FILE="${LOG_DIR}/outlands_install_${LOG_TIMESTAMP}_debug.log"
 
 # Timing
 START_TIME=$(date +%s)
@@ -110,13 +112,22 @@ mkdir -p "${LOG_DIR}"
 
 # Strip ANSI escape sequences for log file
 strip_ansi() {
-    # Use sed to remove ANSI escape codes
     sed 's/\x1b\[[0-9;]*m//g'
 }
 
 # Duplicate all output to log file (without colors)
 exec > >(tee >(strip_ansi >> "${LOG_FILE}"))
 exec 2> >(tee >(strip_ansi >> "${LOG_FILE}") >&2)
+
+# Full bash debug trace goes to separate debug log (timestamped, every command)
+exec 4>>"${DEBUG_LOG_FILE}"
+BASH_XTRACEFD=4
+set -x
+
+# Log helper: write directly to debug log with timestamp
+debug_log() {
+    printf '[%s] [DEBUG] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&4
+}
 
 # ---------------------
 #  Output Functions
@@ -136,7 +147,11 @@ step() {
 info()    { echo -e "  ${GREEN}✓${NC} $1"; }
 warn()    { echo -e "  ${YELLOW}!${NC} $1"; }
 error()   { echo -e "  ${RED}✗${NC} $1"; }
-die()     { error "$1"; exit 1; }
+die() {
+    error "$1"
+    debug_log "FATAL: $1"
+    exit 1
+}
 
 # ---------------------
 #  Utility Functions
@@ -162,15 +177,15 @@ elapsed() {
 
 plist_set_int() {
     local plist="$1" key="$2" value="$3"
-    /usr/libexec/PlistBuddy -c "Set :\"${key}\" ${value}" "${plist}" 2>/dev/null \
-        || /usr/libexec/PlistBuddy -c "Add :\"${key}\" integer ${value}" "${plist}"
+    /usr/libexec/PlistBuddy -c "Set :\"${key}\" ${value}" "${plist}" 2>&4 \
+        || /usr/libexec/PlistBuddy -c "Add :\"${key}\" integer ${value}" "${plist}" 2>&4
 }
 
 plist_set_string() {
     local plist="$1" key="$2" value="$3"
     # Wrap value in escaped quotes so paths with spaces work (e.g., /Program Files (x86)/...)
-    /usr/libexec/PlistBuddy -c "Set :\"${key}\" \"${value}\"" "${plist}" 2>/dev/null \
-        || /usr/libexec/PlistBuddy -c "Add :\"${key}\" string \"${value}\"" "${plist}"
+    /usr/libexec/PlistBuddy -c "Set :\"${key}\" \"${value}\"" "${plist}" 2>&4 \
+        || /usr/libexec/PlistBuddy -c "Add :\"${key}\" string \"${value}\"" "${plist}" 2>&4
 }
 
 # Download a file with proper error handling
@@ -180,7 +195,9 @@ download_file() {
     local dest="$2"
     local desc="${3:-file}"
 
-    if ! curl -fL --progress-bar -o "${dest}" "${url}"; then
+    debug_log "Downloading ${desc}: ${url} -> ${dest}"
+    if ! curl -fL --progress-bar -o "${dest}" "${url}" 2>&4; then
+        debug_log "curl failed for ${desc} (exit $?): ${url}"
         die "Failed to download ${desc} from ${url}"
     fi
 
@@ -189,6 +206,7 @@ download_file() {
         rm -f "${dest}"
         die "Downloaded ${desc} is empty (0 bytes)"
     fi
+    debug_log "Download OK: ${desc} ($(du -h "${dest}" | cut -f1))"
 }
 
 # Extract a tar archive with verification
@@ -214,14 +232,15 @@ extract_archive() {
 sikarugir_cli() {
     local cmd="$1"
     shift
-    if ! "${WRAPPER_APP}/Contents/MacOS/Sikarugir" "${cmd}" "$@"; then
+    debug_log "Running: Sikarugir ${cmd} $*"
+    if ! "${WRAPPER_APP}/Contents/MacOS/Sikarugir" "${cmd}" "$@" 2>&4; then
         die "Sikarugir command failed: ${cmd} $*"
     fi
 }
 
 # Check network connectivity
 check_network() {
-    if ! curl -fsS --max-time 10 -o /dev/null "https://github.com"; then
+    if ! curl -fsS --max-time 10 -o /dev/null "https://github.com" 2>&4; then
         die "No network connectivity. Please check your internet connection."
     fi
 }
@@ -233,7 +252,7 @@ get_latest_engine() {
     local latest
 
     # Try GitHub API -- unauthenticated rate limit is 60/hr
-    if api_response=$(curl -fsS --max-time 15 "${GITHUB_API_ENGINES}" 2>/dev/null); then
+    if api_response=$(curl -fsS --max-time 15 "${GITHUB_API_ENGINES}" 2>&4); then
         # Extract asset names matching WS12WineSikarugir*.tar.xz, pick latest by version sort
         latest=$(echo "${api_response}" \
             | grep -o '"name":"WS12WineSikarugir[^"]*\.tar\.xz"' \
@@ -258,7 +277,7 @@ get_latest_template() {
     local api_response
     local latest
 
-    if api_response=$(curl -fsS --max-time 15 "${GITHUB_API_WRAPPER}" 2>/dev/null); then
+    if api_response=$(curl -fsS --max-time 15 "${GITHUB_API_WRAPPER}" 2>&4); then
         latest=$(echo "${api_response}" \
             | grep -o '"name":"Template-[^"]*\.tar\.xz"' \
             | sed 's/"name":"Template-//;s/\.tar\.xz"//' \
@@ -297,7 +316,7 @@ configure_plist() {
     plist_set_int "${plist}" "Skip Gecko" 0
     plist_set_int "${plist}" "Skip Mono" 0
     plist_set_int "${plist}" "Symlinks In User Folder" 1
-    plist_set_int "${plist}" "Winetricks disable logging" 1
+    plist_set_int "${plist}" "Winetricks disable logging" 0
     plist_set_int "${plist}" "Winetricks force" 0
     plist_set_int "${plist}" "Winetricks silent" 1
 
@@ -326,6 +345,8 @@ TMPFILES=()
 
 cleanup() {
     local exit_code=$?
+    # Disable trace during cleanup to avoid noise
+    { set +x; } 2>/dev/null
     for f in "${TMPFILES[@]+"${TMPFILES[@]}"}"; do
         if [[ -e "${f}" ]]; then
             rm -rf "${f}"
@@ -333,10 +354,34 @@ cleanup() {
     done
     if [[ ${exit_code} -ne 0 ]]; then
         echo ""
-        error "Installation failed (exit code ${exit_code}). Check log: ${LOG_FILE}"
+        error "Installation failed (exit code ${exit_code})."
+        error "Log:   ${LOG_FILE}"
+        error "Debug: ${DEBUG_LOG_FILE}"
+        echo ""
+        echo "  Tip: The debug log contains the full bash trace of every"
+        echo "  command that was executed. Share it when reporting issues."
     fi
 }
 
+# Log bash call stack on ERR (before cleanup runs)
+log_error_context() {
+    local exit_code=$?
+    {
+        echo ""
+        echo "========================================"
+        echo "ERROR at $(date) -- exit code ${exit_code}"
+        echo "Failed command: ${BASH_COMMAND}"
+        echo "--- Call stack ---"
+        local i
+        for (( i=0; i < ${#FUNCNAME[@]}; i++ )); do
+            echo "  [${i}] ${FUNCNAME[$i]}() at ${BASH_SOURCE[$i]:-?}:${BASH_LINENO[$i]}"
+        done
+        echo "========================================"
+        echo ""
+    } >> "${DEBUG_LOG_FILE}" 2>&1
+}
+
+trap log_error_context ERR
 trap cleanup EXIT
 
 # ---------------------
@@ -350,7 +395,56 @@ echo "  ║         UO Outlands - macOS Installer (Apple Silicon)    ║"
 echo "  ║         Wine + Sikarugir Automated Setup                 ║"
 echo "  ╚═══════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
-echo -e "  ${DIM}Log: ${LOG_FILE}${NC}"
+echo -e "  ${DIM}Log:   ${LOG_FILE}${NC}"
+echo -e "  ${DIM}Debug: ${DEBUG_LOG_FILE}${NC}"
+
+# =============================================================================
+#  System Info Dump (debug log only)
+# =============================================================================
+
+{
+    echo "========================================"
+    echo "SYSTEM INFO DUMP - $(date)"
+    echo "========================================"
+    echo "Hostname: $(hostname 2>&1)"
+    echo "User: $(whoami 2>&1)"
+    echo "Shell: ${BASH_VERSION:-unknown}"
+    echo "Script: $0 $*"
+    echo "PWD: $(pwd)"
+    echo ""
+    echo "--- uname ---"
+    uname -a 2>&1
+    echo ""
+    echo "--- macOS version ---"
+    sw_vers 2>&1
+    echo ""
+    echo "--- Disk space ---"
+    df -h "$HOME" 2>&1
+    echo ""
+    echo "--- Homebrew ---"
+    brew --version 2>&1 || echo "Homebrew NOT FOUND"
+    echo ""
+    echo "--- Wine ---"
+    wine64 --version 2>&1 || echo "wine64 NOT FOUND"
+    wine --version 2>&1 || echo "wine NOT FOUND"
+    echo ""
+    echo "--- Brew casks ---"
+    brew list --cask 2>&1 || echo "Failed to list casks"
+    echo ""
+    echo "--- Sikarugir wrapper ---"
+    ls -la "${WRAPPER_APP}/Contents/Info.plist" 2>&1 || echo "Wrapper not found yet"
+    echo ""
+    echo "--- Environment (filtered) ---"
+    env | grep -iE '(wine|sdl|d3d|dxvk|metal|mvk|path|home|lang|lc_)' 2>&1 || true
+    echo ""
+    echo "--- Rosetta ---"
+    /usr/bin/pgrep -x oahd >/dev/null 2>&1 && echo "Rosetta 2: running" || echo "Rosetta 2: not running"
+    echo ""
+    echo "========================================"
+    echo "END SYSTEM INFO DUMP"
+    echo "========================================"
+    echo ""
+} >> "${DEBUG_LOG_FILE}" 2>&1
 
 # =============================================================================
 #  Uninstall Mode
@@ -429,7 +523,7 @@ fi
 info "Apple Silicon (${ARCH}) detected"
 
 # macOS version -- robust parsing with validation
-MACOS_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "0.0.0")
+MACOS_VERSION=$(sw_vers -productVersion 2>&4 || echo "0.0.0")
 MACOS_MAJOR=$(echo "${MACOS_VERSION}" | cut -d. -f1)
 if ! [[ "${MACOS_MAJOR}" =~ ^[0-9]+$ ]]; then
     die "Could not determine macOS version (got: ${MACOS_VERSION})"
@@ -504,19 +598,21 @@ fi
 
 step "Installing Wine Stable + Sikarugir"
 
-if brew list --cask "${BREW_CASK_WINE}" >/dev/null 2>&1; then
+if brew list --cask "${BREW_CASK_WINE}" >/dev/null 2>&4; then
     info "Wine Stable already installed"
 else
     warn "Installing Wine Stable..."
-    brew install --cask --no-quarantine "${BREW_CASK_WINE}"
+    debug_log "brew install --cask wine-stable"
+    brew install --cask --no-quarantine "${BREW_CASK_WINE}" 2>&4
     info "Wine Stable installed"
 fi
 
-if brew list --cask sikarugir >/dev/null 2>&1; then
+if brew list --cask sikarugir >/dev/null 2>&4; then
     info "Sikarugir already installed"
 else
     warn "Installing Sikarugir..."
-    brew install --cask --no-quarantine "${BREW_CASK_SIKARUGIR}"
+    debug_log "brew install --cask sikarugir"
+    brew install --cask --no-quarantine "${BREW_CASK_SIKARUGIR}" 2>&4
     info "Sikarugir installed"
 fi
 
@@ -601,7 +697,7 @@ else
         if [[ ! -d "${WRAPPER_WINE_DIR}/bin" ]]; then
             die "Engine injection failed: ${WRAPPER_WINE_DIR}/bin not found"
         fi
-        info "Engine injected: $(cat "${WRAPPER_WINE_DIR}/version" 2>/dev/null || echo "${ENGINE_NAME}")"
+        info "Engine injected: $(cat "${WRAPPER_WINE_DIR}/version" 2>&4 || echo "${ENGINE_NAME}")"
     fi
 
     # Create symlinks expected by Sikarugir
@@ -615,7 +711,7 @@ else
     info "Wrapper symlinks created"
 
     # Remove quarantine attribute from wrapper
-    xattr -drs com.apple.quarantine "${WRAPPER_APP}" 2>/dev/null || true
+    xattr -drs com.apple.quarantine "${WRAPPER_APP}" 2>&4 || true
     info "Quarantine attribute removed from wrapper"
 fi
 
@@ -628,7 +724,7 @@ step "Configuring wrapper (Info.plist)"
 PLIST="${WRAPPER_APP}/Contents/Info.plist"
 
 # Preserve existing bundle ID on re-run, generate new one only for fresh wrapper
-EXISTING_BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${PLIST}" 2>/dev/null || echo "")
+EXISTING_BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${PLIST}" 2>&4 || echo "")
 if [[ -n "${EXISTING_BUNDLE_ID}" ]] && [[ "${EXISTING_BUNDLE_ID}" == com.sikarugir.${WRAPPER_NAME}.* ]]; then
     BUNDLE_ID="${EXISTING_BUNDLE_ID}"
     info "Bundle ID preserved: ${BUNDLE_ID}"
@@ -668,7 +764,7 @@ fi
 # Remove .ttc font entries from Wine registry -- SixLabors.Fonts cannot parse
 # TrueType Collection files and ClassicUO crashes with "Table 'name' is missing"
 for _reg in "${WRAPPER_PREFIX}/system.reg" "${WRAPPER_PREFIX}/user.reg"; do
-    if [[ -f "${_reg}" ]] && grep -q '\.ttc"' "${_reg}" 2>/dev/null; then
+    if [[ -f "${_reg}" ]] && grep -q '\.ttc"' "${_reg}" 2>&4; then
         sed -i '' '/\.ttc"$/d' "${_reg}"
     fi
 done
@@ -689,7 +785,7 @@ else
     if [[ -d "${MACOS_FONTS}" ]]; then
         for pattern in "Arial" "Courier New" "Times New Roman" "Georgia" "Verdana" "Tahoma" "Trebuchet MS" "Comic Sans" "Impact" "Webdings"; do
             for f in "${MACOS_FONTS}/${pattern}"*.ttf; do
-                [[ -f "${f}" ]] && cp "${f}" "${WINE_FONTS_DIR}/" 2>/dev/null && FONTS_COPIED=$((FONTS_COPIED + 1))
+                [[ -f "${f}" ]] && cp "${f}" "${WINE_FONTS_DIR}/" 2>&4 && FONTS_COPIED=$((FONTS_COPIED + 1))
             done
         done
     fi
@@ -719,13 +815,16 @@ if [[ "${DOTNET_INSTALLED}" == true ]]; then
 else
     for pkg in ${WINETRICKS_PACKAGES}; do
         warn "Installing ${pkg} (this may take several minutes)..."
+        debug_log "winetricks: installing ${pkg}"
         # Retry once on failure
-        if ! "${WRAPPER_APP}/Contents/MacOS/Sikarugir" WSS-winetricks "${pkg}"; then
+        if ! "${WRAPPER_APP}/Contents/MacOS/Sikarugir" WSS-winetricks "${pkg}" 2>&4; then
+            debug_log "winetricks: ${pkg} failed on first attempt, retrying"
             warn "Retrying ${pkg}..."
-            if ! "${WRAPPER_APP}/Contents/MacOS/Sikarugir" WSS-winetricks "${pkg}"; then
+            if ! "${WRAPPER_APP}/Contents/MacOS/Sikarugir" WSS-winetricks "${pkg}" 2>&4; then
                 die "Failed to install ${pkg} via winetricks after retry"
             fi
         fi
+        debug_log "winetricks: ${pkg} installed OK"
         info "${pkg} installed"
     done
 fi
@@ -734,7 +833,7 @@ fi
 # Check registry for current Windows version
 WINXP_SET=false
 SYSTEM_REG="${WRAPPER_PREFIX}/system.reg"
-if [[ -f "${SYSTEM_REG}" ]] && grep -q '"ProductName"="Microsoft Windows XP"' "${SYSTEM_REG}" 2>/dev/null; then
+if [[ -f "${SYSTEM_REG}" ]] && grep -q '"ProductName"="Microsoft Windows XP"' "${SYSTEM_REG}" 2>&4; then
     WINXP_SET=true
 fi
 
@@ -814,8 +913,8 @@ PLISTEOF
 info "LaunchAgent created: ${LAUNCH_AGENT_PLIST}"
 
 # Also set it for the current session
-launchctl setenv SDL_AUDIODRIVER directsound 2>/dev/null || true
-launchctl setenv SDL_AUDIO_DEVICE_SAMPLE_FRAMES 4096 2>/dev/null || true
+launchctl setenv SDL_AUDIODRIVER directsound 2>&4 || true
+launchctl setenv SDL_AUDIO_DEVICE_SAMPLE_FRAMES 4096 2>&4 || true
 info "SDL_AUDIODRIVER=directsound set for current session"
 
 # =============================================================================
@@ -838,6 +937,7 @@ echo -e "  Template:   ${CYAN}Template-${TEMPLATE_VERSION}${NC}"
 echo -e "  D3DMetal:   ${GREEN}Enabled${NC}"
 echo -e "  .NET:       ${GREEN}${WINETRICKS_PACKAGES}${NC}"
 echo -e "  Log:        ${DIM}${LOG_FILE}${NC}"
+echo -e "  Debug:      ${DIM}${DEBUG_LOG_FILE}${NC}"
 echo ""
 echo -e "  ${BOLD}How to launch:${NC}"
 echo "    Double-click ${WRAPPER_NAME}.app in ${WRAPPER_DIR}"
