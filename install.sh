@@ -616,6 +616,12 @@ else
     info "Wine Stable installed"
 fi
 
+# Remove quarantine attribute (Homebrew 5.x dropped --no-quarantine flag)
+if [[ -d "/Applications/Wine Stable.app" ]]; then
+    xattr -cr "/Applications/Wine Stable.app" 2>&4 || true
+    info "Wine Stable quarantine cleared"
+fi
+
 if brew list --cask sikarugir >/dev/null 2>&4; then
     info "Sikarugir already installed"
 else
@@ -623,6 +629,12 @@ else
     debug_log "brew install --cask sikarugir"
     brew install --cask "${BREW_CASK_SIKARUGIR}" 2>&4
     info "Sikarugir installed"
+fi
+
+# Remove quarantine attribute for Sikarugir as well
+if [[ -d "/Applications/Sikarugir Creator.app" ]]; then
+    xattr -cr "/Applications/Sikarugir Creator.app" 2>&4 || true
+    info "Sikarugir quarantine cleared"
 fi
 
 # =============================================================================
