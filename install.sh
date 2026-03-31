@@ -523,10 +523,13 @@ fi
 info "Apple Silicon (${ARCH}) detected"
 
 # macOS version -- robust parsing with validation
-MACOS_VERSION=$(sw_vers -productVersion 2>&4 || echo "0.0.0")
+MACOS_VERSION=$(sw_vers -productVersion 2>&4 || true)
+if [[ -z "${MACOS_VERSION}" ]]; then
+    die "Could not read macOS version (sw_vers failed)"
+fi
 MACOS_MAJOR=$(echo "${MACOS_VERSION}" | cut -d. -f1)
 if ! [[ "${MACOS_MAJOR}" =~ ^[0-9]+$ ]]; then
-    die "Could not determine macOS version (got: ${MACOS_VERSION})"
+    die "Could not parse macOS version (got: '${MACOS_VERSION}', major: '${MACOS_MAJOR}')"
 fi
 if [[ "${MACOS_MAJOR}" -lt 13 ]]; then
     die "macOS 13 (Ventura) or later required. Detected: ${MACOS_VERSION}"
@@ -541,15 +544,20 @@ if [[ -d "${WRAPPER_APP}" ]]; then
 fi
 
 # Disk space -- warn only on re-run (everything already installed), die on fresh install
-AVAILABLE_GB=$(df -g "$HOME" | awk 'NR==2 {print $4}')
-if [[ "${AVAILABLE_GB}" -lt "${MIN_DISK_SPACE_GB}" ]]; then
-    if [[ "${WRAPPER_EXISTS}" == true ]]; then
-        warn "Low disk space (${AVAILABLE_GB}GB free) but wrapper already exists, continuing..."
-    else
-        die "Need at least ${MIN_DISK_SPACE_GB}GB free. Available: ${AVAILABLE_GB}GB"
-    fi
+AVAILABLE_GB=$(df -g "$HOME" 2>&4 | awk 'NR==2 {print $4}' || true)
+if [[ -z "${AVAILABLE_GB}" ]] || ! [[ "${AVAILABLE_GB}" =~ ^[0-9]+$ ]]; then
+    warn "Could not determine free disk space (got: '${AVAILABLE_GB}'). Skipping check."
+    debug_log "df -g output: $(df -g "$HOME" 2>&1)"
 else
-    info "${AVAILABLE_GB}GB disk space available"
+    if [[ "${AVAILABLE_GB}" -lt "${MIN_DISK_SPACE_GB}" ]]; then
+        if [[ "${WRAPPER_EXISTS}" == true ]]; then
+            warn "Low disk space (${AVAILABLE_GB}GB free) but wrapper already exists, continuing..."
+        else
+            die "Need at least ${MIN_DISK_SPACE_GB}GB free. Available: ${AVAILABLE_GB}GB"
+        fi
+    else
+        info "${AVAILABLE_GB}GB disk space available"
+    fi
 fi
 
 # Network connectivity
