@@ -892,7 +892,7 @@ if [[ -f "${DOTNET_DIR}/v2.0.50727/mscorlib.dll" ]] && [[ -f "${DOTNET_DIR}/v4.0
 fi
 
 if [[ "${DOTNET_INSTALLED}" == true ]]; then
-    info ".NET already installed (v2.0 + v4.0 mscorlib.dll found)"
+    info ".NET already installed (v2.0 + v4.0 mscorlib.dll found, real .NET Framework)"
 else
     for pkg in ${WINETRICKS_PACKAGES}; do
         warn "Installing ${pkg} (this may take several minutes)..."
@@ -908,6 +908,44 @@ else
         debug_log "winetricks: ${pkg} installed OK"
         info "${pkg} installed"
     done
+
+    # --- Post-install .NET validation ---
+    info "Validating .NET installation..."
+    DOTNET_OK=true
+    DOTNET_REPORT=""
+
+    # Check each expected .NET version
+    for _fwdir in "Framework" "Framework64"; do
+        for _ver in "v2.0.50727" "v4.0.30319"; do
+            _dll="${WRAPPER_PREFIX}/drive_c/windows/Microsoft.NET/${_fwdir}/${_ver}/mscorlib.dll"
+            if [[ -f "${_dll}" ]]; then
+                _size=$(stat -f%z "${_dll}" 2>&4 || echo "0")
+                if [[ "${_size}" -gt 2000000 ]]; then
+                    DOTNET_REPORT="${DOTNET_REPORT}  ✓ ${_fwdir}/${_ver}/mscorlib.dll (${_size} bytes)\n"
+                else
+                    DOTNET_REPORT="${DOTNET_REPORT}  ✗ ${_fwdir}/${_ver}/mscorlib.dll STUB (${_size} bytes)\n"
+                    DOTNET_OK=false
+                fi
+            else
+                DOTNET_REPORT="${DOTNET_REPORT}  ✗ ${_fwdir}/${_ver}/mscorlib.dll MISSING\n"
+                DOTNET_OK=false
+            fi
+        done
+    done
+
+    echo -e "${DOTNET_REPORT}"
+    debug_log ".NET validation report:"
+    echo -e "${DOTNET_REPORT}" >&4
+
+    if [[ "${DOTNET_OK}" == true ]]; then
+        info ".NET Framework validated — all DLLs are real (not Mono stubs)"
+    else
+        error ".NET validation FAILED — some DLLs are missing or are Mono stubs"
+        error "This will cause Outlands launcher to crash (exit code 255)"
+        error "Try running the installer again, or install .NET manually via:"
+        error "  Sikarugir Creator → Winetricks → dotnet20sp2, dotnet40, dotnet481"
+        die ".NET installation incomplete"
+    fi
 fi
 
 # Set Windows version to 10 after .NET installs
@@ -924,6 +962,15 @@ else
     warn "Setting Windows version to Windows 10..."
     sikarugir_cli WSS-winetricks win10
     info "Windows 10 mode set"
+fi
+
+# Verify Windows version was set correctly
+if [[ -f "${SYSTEM_REG}" ]] && grep -q '"ProductName"="Windows 10 Pro"' "${SYSTEM_REG}" 2>&4; then
+    info "Windows version confirmed: Windows 10 Pro"
+else
+    warn "Windows version may not be set correctly — check winecfg"
+    debug_log "Windows version check failed. system.reg ProductName:"
+    grep '"ProductName"' "${SYSTEM_REG}" 2>&1 >&4 || true
 fi
 
 # =============================================================================

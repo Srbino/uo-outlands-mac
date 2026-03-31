@@ -262,17 +262,31 @@ else
     warn "Only ${FONT_COUNT} fonts installed"
 fi
 
-# .NET
-DOTNET_DIR="${WRAPPER_PREFIX}/drive_c/windows/Microsoft.NET/Framework"
-if [[ -d "${DOTNET_DIR}" ]]; then
-    DOTNET_DLLS=$(find "${DOTNET_DIR}" -name "mscorlib.dll" 2>/dev/null | wc -l | tr -d ' ')
-    if [[ "${DOTNET_DLLS}" -gt 0 ]]; then
-        ok ".NET runtimes: ${DOTNET_DLLS} mscorlib.dll found"
+# .NET — check both existence AND size (Wine Mono stubs are ~752KB, real .NET is ~4-5MB)
+for _fwdir in "Framework" "Framework64"; do
+    for _ver in "v2.0.50727" "v4.0.30319"; do
+        _dll="${WRAPPER_PREFIX}/drive_c/windows/Microsoft.NET/${_fwdir}/${_ver}/mscorlib.dll"
+        if [[ -f "${_dll}" ]]; then
+            _size=$(stat -f%z "${_dll}" 2>/dev/null || echo "0")
+            if [[ "${_size}" -gt 2000000 ]]; then
+                ok ".NET ${_fwdir}/${_ver} — real .NET Framework (${_size} bytes)"
+            else
+                fail ".NET ${_fwdir}/${_ver} — Wine Mono STUB (${_size} bytes) — will cause exit 255!"
+            fi
+        else
+            fail ".NET ${_fwdir}/${_ver} — mscorlib.dll MISSING"
+        fi
+    done
+done
+
+# Windows version
+if [[ -f "${WRAPPER_PREFIX}/system.reg" ]]; then
+    _winver=$(grep '"ProductName"' "${WRAPPER_PREFIX}/system.reg" 2>/dev/null | grep -v 'Mono' | head -1 | sed 's/.*="\(.*\)"/\1/')
+    if echo "${_winver}" | grep -qi 'windows 10'; then
+        ok "Windows version: ${_winver}"
     else
-        fail ".NET runtimes NOT installed"
+        fail "Windows version: ${_winver} (should be Windows 10 for Outlands)"
     fi
-else
-    fail ".NET Framework directory missing"
 fi
 
 # ==========================================================
