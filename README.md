@@ -175,6 +175,10 @@ cp "/Applications/Wine Stable.app/Contents/Resources/wine/lib/"*.dylib \
 - Razor profiles location: `drive_c/users/crossover/Application Data/Razor/`
 - Game logs: `drive_c/Program Files (x86)/Ultima Online Outlands/Logs/`
 - Debug launch: `~/Applications/Sikarugir/outlands.app/Contents/MacOS/Sikarugir 2>&1 | tee ~/Desktop/debug.log`
+- **Kill stuck Wine processes before re-launching** — Wine on macOS doesn't always clean up after itself. If the game won't start, kill all Wine processes first:
+  ```bash
+  pkill -f wineserver; pkill -f wine; pkill -f Outlands
+  ```
 
 ## Helper Scripts
 
