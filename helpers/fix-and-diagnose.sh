@@ -338,8 +338,9 @@ echo ""
 echo "[12] Sikarugir Launch Test"
 echo "────────────────────────────────────────"
 if [[ -x "${WRAPPER_APP}/Contents/MacOS/Sikarugir" ]]; then
-    echo "  Running Sikarugir (5s timeout)..."
-    SIKA_OUT=$(timeout 10 "${WRAPPER_APP}/Contents/MacOS/Sikarugir" 2>&1 || true)
+    echo "  Running Sikarugir (10s timeout)..."
+    # macOS bash 3.2 has no 'timeout' command — use perl alarm instead
+    SIKA_OUT=$(perl -e 'alarm 10; exec @ARGV' "${WRAPPER_APP}/Contents/MacOS/Sikarugir" 2>&1 || true)
     if [[ -n "${SIKA_OUT}" ]]; then
         echo "  --- Sikarugir output ---"
         echo "${SIKA_OUT}" | head -20
