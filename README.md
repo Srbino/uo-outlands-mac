@@ -134,51 +134,155 @@ Additional tips:
 
 ## Troubleshooting
 
-### Installer fails silently at step 1 (Pre-flight checks)
-**Cause:** BSD `sed` crashes on non-English locales (`sed: RE error: illegal byte sequence`)
-**Fix:** Fixed in v0.3.0. Re-download the latest install.sh.
+Something not working? Start here:
+
+1. **Run the diagnostic script** — it auto-fixes most issues:
+   ```bash
+   curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/helpers/fix-and-diagnose.sh' -H 'Accept: application/vnd.github.raw' | bash
+   ```
+2. If that doesn't help, find your problem below.
+3. If nothing helps, try [Manual Installation via Sikarugir Creator](#manual-installation-via-sikarugir-creator).
+
+---
+
+### Installer does nothing / fails silently at step 1
+**Symptoms:** Script shows banner and `✓ Apple Silicon detected`, then exits with no error.
+**Cause:** BSD `sed` crashes on non-English locales like Czech or German (`sed: RE error: illegal byte sequence`). This kills the logging pipeline and the entire script dies silently.
+**Fix:** Fixed in v0.3.0. Re-download the latest install.sh. If stuck on old version:
+```bash
+curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/install.sh' \
+  -H 'Accept: application/vnd.github.raw' -o install.sh && chmod +x install.sh && ./install.sh
+```
 
 ### `brew: command not found`
-**Cause:** Homebrew not in PATH after installation.
-**Fix:** Run `eval "$(/opt/homebrew/bin/brew shellenv)"` and add to `~/.zprofile`.
+**Symptoms:** Script fails at step 3 (Checking Homebrew).
+**Cause:** Homebrew installed but not added to PATH. Common on fresh installs — Homebrew prints instructions after install but many people miss them.
+**Fix:**
+```bash
+echo >> ~/.zprofile
+echo 'eval "$(/opt/homebrew/bin/brew shellenv zsh)"' >> ~/.zprofile
+eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+```
+Verify: `brew --version` should print the version. Then re-run install.sh.
 
 ### `Error: Calling the --[no-]quarantine switch is disabled!`
-**Cause:** Homebrew 5.x removed the `--no-quarantine` flag.
-**Fix:** Fixed in v0.3.0. Script now clears quarantine manually via `xattr -cr`.
+**Symptoms:** Script fails at step 4 (Installing Wine Stable).
+**Cause:** Homebrew 5.x completely removed the `--no-quarantine` flag. Older install.sh versions used it.
+**Fix:** Fixed in v0.3.0. Re-download the latest install.sh.
 
-### Wine Stable "cannot be opened" / Gatekeeper blocks Wine
-**Cause:** macOS quarantine attribute on downloaded app.
-**Fix:** Run `xattr -cr "/Applications/Wine Stable.app"`
+### Wine Stable "cannot be opened" / macOS Gatekeeper blocks it
+**Symptoms:** Double-clicking Wine Stable shows "Apple cannot verify" dialog with "Move to Trash" button.
+**Cause:** macOS quarantine attribute on apps downloaded from the internet. Homebrew 5.x no longer removes it automatically.
+**Fix:**
+```bash
+xattr -cr "/Applications/Wine Stable.app"
+xattr -cr "/Applications/Sikarugir Creator.app"
+```
 
-### `Library not loaded: @rpath/libinotify.0.dylib`
-**Cause:** Sikarugir engine bundle doesn't include all shared libraries that wineserver needs.
-**Fix:** Fixed in v0.3.0. Script auto-copies missing dylibs from Wine Stable.app. Manual fix:
+### `Library not loaded: @rpath/libinotify.0.dylib` (Wine crashes)
+**Symptoms:** Wine smoke test fails. Launching outlands.app does nothing. Debug shows `dyld: Library not loaded`.
+**Cause:** The Sikarugir Wine engine bundle doesn't include all shared libraries (`.dylib` files) that `wineserver` needs. Wine Stable.app has them but they need to be copied into the wrapper.
+**Fix:** Fixed in v0.3.0. Script auto-copies missing dylibs. Manual fix:
 ```bash
 cp "/Applications/Wine Stable.app/Contents/Resources/wine/lib/"*.dylib \
    ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/wine/lib/
 ```
+Verify: run the diagnostic script — `[7] Missing Libraries` should show all present.
 
-### Outlands launcher exits with code 255 (no window appears)
-**Cause:** .NET Framework installed as Wine Mono stubs (~752KB) instead of real Windows .NET DLLs (~5MB). The Outlands launcher is a .NET WPF application that requires real .NET Framework.
-**Fix:** Fixed in v0.4.0. Script now validates DLL sizes after installation. If you hit this:
-1. Install .NET manually via Sikarugir Creator Winetricks (see Manual Installation above)
-2. Or copy .NET DLLs from a working wrapper
+### Outlands launcher exits immediately with code 255
+**Symptoms:** You run the game, Wine loads (you may see MoltenVK messages), then it exits with code 255. No window appears.
+**Cause (most common):** .NET Framework DLLs are Wine Mono stubs (~752KB) instead of real Windows .NET DLLs (~5MB). Winetricks sometimes installs Mono stubs instead of real .NET Framework. Outlands.exe is a .NET WPF application that requires real .NET.
+**How to check:**
+```bash
+ls -la ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix/drive_c/windows/Microsoft.NET/Framework64/v4.0.30319/mscorlib.dll
+```
+If the file is ~752KB → it's a Mono stub. If ~5MB → it's real .NET.
+**Fix:**
+1. Install .NET manually via Sikarugir Creator (see [Manual Installation](#manual-installation-via-sikarugir-creator)) — this installs real .NET Framework
+2. Copy .NET DLLs from the working wrapper into the broken one:
+   ```bash
+   # If you have a working uo.app from Sikarugir Creator:
+   rm -rf ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix/drive_c/windows/Microsoft.NET
+   cp -R ~/Applications/Sikarugir/uo.app/Contents/SharedSupport/prefix/drive_c/windows/Microsoft.NET \
+     ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix/drive_c/windows/Microsoft.NET
+   rm -rf ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix/drive_c/windows/assembly
+   cp -R ~/Applications/Sikarugir/uo.app/Contents/SharedSupport/prefix/drive_c/windows/assembly \
+     ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix/drive_c/windows/assembly
+   ```
 
-### Outlands launcher exits with code 255 (Windows XP mode)
-**Cause:** Wine prefix set to Windows XP, but Outlands launcher requires Windows 10.
-**Fix:** Fixed in v0.4.0. Run `winecfg` and set Windows version to Windows 10.
+**Cause (less common):** Wine prefix is set to Windows XP. Outlands launcher requires Windows 10.
+**Fix:**
+```bash
+export WINEPREFIX="$HOME/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix"
+"$HOME/Applications/Sikarugir/outlands.app/Contents/SharedSupport/wine/bin/wine" winecfg
+```
+In the winecfg window, set Windows version to **Windows 10** at the bottom dropdown.
+
+### Game won't re-launch / hangs on start / nothing happens when clicking outlands.app
+**Symptoms:** Game worked before but now nothing happens when launching.
+**Cause:** Wine processes from the previous session are still running. Wine on macOS doesn't always clean up `wineserver` and child processes.
+**Fix:** Kill all Wine processes and try again:
+```bash
+pkill -f wineserver; pkill -f wine; pkill -f Outlands
+```
+Then relaunch: `open ~/Applications/Sikarugir/outlands.app`
+
+### Script downloads old/cached version of install.sh
+**Symptoms:** After a fix is pushed, running the script still shows the old bug.
+**Cause:** `raw.githubusercontent.com` CDN caches aggressively (up to 5 minutes).
+**Fix:** Use the GitHub API URL (no cache):
+```bash
+curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/install.sh' \
+  -H 'Accept: application/vnd.github.raw' -o install.sh && chmod +x install.sh && ./install.sh
+```
+
+### Notepad works but Outlands.exe doesn't (Wine GUI is OK)
+**Symptoms:** `wine notepad.exe` shows a window, `wine winecfg` shows a window, but Outlands.exe exits silently.
+**Cause:** This is the .NET/WPF issue described above. Notepad and winecfg don't need .NET. Outlands.exe does.
+**Fix:** See "Outlands launcher exits immediately with code 255" above.
+
+### First launch: game window opens but no game files download
+**Symptoms:** Outlands launcher starts but game directory only has `Outlands.exe` (1 file, ~165MB). ClassicUO and game assets are missing.
+**Cause:** Outlands.exe is the launcher/patcher. It needs to download ~3-4GB of game files on first run. This requires a working internet connection through Wine.
+**Fix:** Keep the launcher open and let it download. It may take 10-30 minutes depending on your connection. Don't close the window until it's done.
+
+### Complete fresh start (nuclear option)
+If nothing works, remove everything and start over:
+```bash
+# Remove wrapper and Sikarugir data
+rm -rf ~/Applications/Sikarugir/outlands.app
+rm -rf ~/Library/Application\ Support/Sikarugir
+
+# Kill any stuck processes
+pkill -f wineserver; pkill -f wine; pkill -f Outlands
+
+# Re-install
+cd ~ && curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/install.sh' \
+  -H 'Accept: application/vnd.github.raw' -o install.sh && chmod +x install.sh && ./install.sh
+```
+This preserves Homebrew, Wine Stable, and Sikarugir Creator (no need to re-download those).
+
+---
 
 ## Tips
 
+- **Re-running install.sh is safe** — the script is idempotent, it skips completed steps and fixes missing components
+- **Kill stuck Wine processes before re-launching:**
+  ```bash
+  pkill -f wineserver; pkill -f wine; pkill -f Outlands
+  ```
+- **Connect headphones/AirPods BEFORE launching** — Wine doesn't hot-switch audio devices
 - Switch between Razor and Game windows: **Cmd + \`** (backtick)
 - Reconfigure wrapper: Right-click `outlands.app` → Show Package Contents → `Configure.app`
 - Razor profiles location: `drive_c/users/crossover/Application Data/Razor/`
 - Game logs: `drive_c/Program Files (x86)/Ultima Online Outlands/Logs/`
-- Debug launch: `~/Applications/Sikarugir/outlands.app/Contents/MacOS/Sikarugir 2>&1 | tee ~/Desktop/debug.log`
-- **Kill stuck Wine processes before re-launching** — Wine on macOS doesn't always clean up after itself. If the game won't start, kill all Wine processes first:
+- Debug launch from Terminal:
   ```bash
-  pkill -f wineserver; pkill -f wine; pkill -f Outlands
+  ~/Applications/Sikarugir/outlands.app/Contents/MacOS/Sikarugir 2>&1 | tee ~/Desktop/debug.log
   ```
+- Validate Homebrew health: `brew doctor`
+- Check what's installed: `brew list --cask`
+- **First game launch downloads ~3-4GB** — be patient, keep the launcher window open
 
 ## Helper Scripts
 
