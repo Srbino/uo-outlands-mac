@@ -15,7 +15,7 @@ Automated installation script for [UO Outlands](https://uooutlands.com/) on Appl
 ### One-liner (copy & paste into Terminal)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Srbino/uo-outlands-mac/main/install.sh | bash
+/bin/bash -c "$(curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/install.sh' -H 'Accept: application/vnd.github.raw')"
 ```
 
 ### Step by step
@@ -29,7 +29,7 @@ If you've never used Terminal before:
    ```
 3. Download and run the installer:
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/Srbino/uo-outlands-mac/main/install.sh -o install.sh
+   curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/install.sh' -H 'Accept: application/vnd.github.raw' -o install.sh
    chmod +x install.sh
    ./install.sh
    ```
