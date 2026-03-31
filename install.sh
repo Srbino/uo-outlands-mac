@@ -736,6 +736,31 @@ else
     info "Quarantine attribute removed from wrapper"
 fi
 
+# Validate Wine binary in engine
+WINE_BIN=""
+for _candidate in "${WRAPPER_WINE_DIR}/bin/wine" "${WRAPPER_WINE_DIR}/bin/wine64"; do
+    if [[ -x "${_candidate}" ]]; then
+        WINE_BIN="${_candidate}"
+        break
+    fi
+done
+if [[ -z "${WINE_BIN}" ]]; then
+    die "Wine binary not found in engine (checked ${WRAPPER_WINE_DIR}/bin/wine and wine64)"
+fi
+WINE_VER=$("${WINE_BIN}" --version 2>&4 || echo "unknown")
+info "Wine binary: ${WINE_BIN##*/} (${WINE_VER})"
+
+# Quick Wine smoke test
+export WINEPREFIX="${WRAPPER_APP}/Contents/SharedSupport/prefix"
+WINE_TEST=$("${WINE_BIN}" cmd /c 'echo OK' 2>&4 || true)
+if echo "${WINE_TEST}" | grep -q "OK"; then
+    info "Wine smoke test passed"
+else
+    warn "Wine smoke test failed (wine cmd /c 'echo OK' did not return OK)"
+    debug_log "Wine smoke test output: ${WINE_TEST}"
+fi
+unset WINEPREFIX
+
 # =============================================================================
 #  Step 8: Configure Info.plist
 # =============================================================================

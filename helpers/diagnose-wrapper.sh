@@ -59,19 +59,25 @@ echo ""
 # --- 3. Wine binary ---
 echo "[3] Wine"
 echo "────────────────────────────────────────"
-if [[ -x "/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine64" ]]; then
-    WINE_BIN="/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine64"
+WINE_BIN=""
+# Search order: wrapper engine first (preferred), then system Wine Stable
+for _candidate in \
+    "${WRAPPER_WINE}/bin/wine" \
+    "${WRAPPER_WINE}/bin/wine64" \
+    "/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine" \
+    "/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine64"; do
+    if [[ -x "${_candidate}" ]]; then
+        WINE_BIN="${_candidate}"
+        break
+    fi
+done
+
+if [[ -n "${WINE_BIN}" ]]; then
     ok "Wine binary: ${WINE_BIN}"
     WINE_VER=$("${WINE_BIN}" --version 2>/dev/null || echo "unknown")
     ok "Wine version: ${WINE_VER}"
-elif [[ -x "${WRAPPER_WINE}/bin/wine64" ]]; then
-    WINE_BIN="${WRAPPER_WINE}/bin/wine64"
-    ok "Wine binary (from engine): ${WINE_BIN}"
-    WINE_VER=$("${WINE_BIN}" --version 2>/dev/null || echo "unknown")
-    ok "Wine version: ${WINE_VER}"
 else
-    fail "Wine binary not found"
-    WINE_BIN=""
+    fail "Wine binary not found (checked wrapper engine + /Applications/Wine Stable.app)"
 fi
 
 # Quarantine check
