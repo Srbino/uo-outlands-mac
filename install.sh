@@ -720,21 +720,23 @@ else
         fi
         info "Engine injected: $(cat "${WRAPPER_WINE_DIR}/version" 2>&4 || echo "${ENGINE_NAME}")"
     fi
-
-    # Create symlinks expected by Sikarugir
-    WRAPPER_CONTENTS="${WRAPPER_APP}/Contents"
-    if [[ ! -L "${WRAPPER_CONTENTS}/Logs" ]]; then
-        ln -sf SharedSupport/Logs "${WRAPPER_CONTENTS}/Logs"
-    fi
-    if [[ ! -L "${WRAPPER_CONTENTS}/drive_c" ]]; then
-        ln -sf SharedSupport/prefix/drive_c "${WRAPPER_CONTENTS}/drive_c"
-    fi
-    info "Wrapper symlinks created"
-
-    # Remove quarantine attribute from wrapper
-    xattr -drs com.apple.quarantine "${WRAPPER_APP}" 2>&4 || true
-    info "Quarantine attribute removed from wrapper"
 fi
+
+# --- Below steps are idempotent and always run (including re-runs) ---
+
+# Create symlinks expected by Sikarugir
+WRAPPER_CONTENTS="${WRAPPER_APP}/Contents"
+if [[ ! -L "${WRAPPER_CONTENTS}/Logs" ]]; then
+    ln -sf SharedSupport/Logs "${WRAPPER_CONTENTS}/Logs"
+fi
+if [[ ! -L "${WRAPPER_CONTENTS}/drive_c" ]]; then
+    ln -sf SharedSupport/prefix/drive_c "${WRAPPER_CONTENTS}/drive_c"
+fi
+info "Wrapper symlinks OK"
+
+# Remove quarantine attribute from wrapper
+xattr -drs com.apple.quarantine "${WRAPPER_APP}" 2>&4 || true
+info "Quarantine cleared"
 
 # Validate Wine binary in engine
 WINE_BIN=""
