@@ -750,14 +750,42 @@ fi
 WINE_VER=$("${WINE_BIN}" --version 2>&4 || echo "unknown")
 info "Wine binary: ${WINE_BIN##*/} (${WINE_VER})"
 
+# Copy missing shared libraries from Wine Stable.app into engine
+# The Sikarugir engine bundle may not include all dylibs (e.g. libinotify)
+# that wineserver links via @rpath. Wine Stable.app provides them.
+WINE_STABLE_LIB="/Applications/Wine Stable.app/Contents/Resources/wine/lib"
+ENGINE_LIB="${WRAPPER_WINE_DIR}/lib"
+if [[ -d "${WINE_STABLE_LIB}" ]] && [[ -d "${ENGINE_LIB}" ]]; then
+    LIBS_COPIED=0
+    for _dylib in "${WINE_STABLE_LIB}"/*.dylib; do
+        [[ -f "${_dylib}" ]] || continue
+        _name=$(basename "${_dylib}")
+        if [[ ! -f "${ENGINE_LIB}/${_name}" ]]; then
+            cp "${_dylib}" "${ENGINE_LIB}/" 2>&4
+            LIBS_COPIED=$((LIBS_COPIED + 1))
+            debug_log "Copied missing lib: ${_name}"
+        fi
+    done
+    if [[ "${LIBS_COPIED}" -gt 0 ]]; then
+        info "Copied ${LIBS_COPIED} missing shared libraries from Wine Stable"
+    else
+        info "All shared libraries present in engine"
+    fi
+else
+    if [[ ! -d "${WINE_STABLE_LIB}" ]]; then
+        warn "Wine Stable.app lib dir not found — cannot copy missing libraries"
+    fi
+fi
+
 # Quick Wine smoke test
 export WINEPREFIX="${WRAPPER_APP}/Contents/SharedSupport/prefix"
 WINE_TEST=$("${WINE_BIN}" cmd /c 'echo OK' 2>&4 || true)
 if echo "${WINE_TEST}" | grep -q "OK"; then
     info "Wine smoke test passed"
 else
-    warn "Wine smoke test failed (wine cmd /c 'echo OK' did not return OK)"
+    warn "Wine smoke test failed — check debug log for details"
     debug_log "Wine smoke test output: ${WINE_TEST}"
+    debug_log "Wine smoke test stderr: $("${WINE_BIN}" cmd /c 'echo OK' 2>&1 || true)"
 fi
 unset WINEPREFIX
 
