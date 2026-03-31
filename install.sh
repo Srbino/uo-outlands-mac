@@ -612,7 +612,7 @@ if brew list --cask "${BREW_CASK_WINE}" >/dev/null 2>&4; then
 else
     warn "Installing Wine Stable..."
     debug_log "brew install --cask wine-stable"
-    brew install --cask --no-quarantine "${BREW_CASK_WINE}" 2>&4
+    brew install --cask "${BREW_CASK_WINE}" 2>&4
     info "Wine Stable installed"
 fi
 
@@ -621,7 +621,7 @@ if brew list --cask sikarugir >/dev/null 2>&4; then
 else
     warn "Installing Sikarugir..."
     debug_log "brew install --cask sikarugir"
-    brew install --cask --no-quarantine "${BREW_CASK_SIKARUGIR}" 2>&4
+    brew install --cask "${BREW_CASK_SIKARUGIR}" 2>&4
     info "Sikarugir installed"
 fi
 
