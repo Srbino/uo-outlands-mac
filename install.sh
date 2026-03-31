@@ -878,12 +878,17 @@ fi
 
 step "Installing .NET runtimes via winetricks"
 
-# Check .NET installation by looking for actual DLL files, not just directories
-# (wineboot creates empty Framework dirs without real .NET installed)
+# Check .NET installation by looking for actual DLL files AND verifying size
+# Wine Mono stubs are ~752KB, real .NET Framework mscorlib.dll is ~4-5MB
 DOTNET_DIR="${WRAPPER_PREFIX}/drive_c/windows/Microsoft.NET/Framework"
 DOTNET_INSTALLED=false
 if [[ -f "${DOTNET_DIR}/v2.0.50727/mscorlib.dll" ]] && [[ -f "${DOTNET_DIR}/v4.0.30319/mscorlib.dll" ]]; then
-    DOTNET_INSTALLED=true
+    DOTNET4_SIZE=$(stat -f%z "${DOTNET_DIR}/v4.0.30319/mscorlib.dll" 2>&4 || echo "0")
+    if [[ "${DOTNET4_SIZE}" -gt 2000000 ]]; then
+        DOTNET_INSTALLED=true
+    else
+        warn ".NET mscorlib.dll found but only ${DOTNET4_SIZE} bytes (Wine Mono stub) — reinstalling"
+    fi
 fi
 
 if [[ "${DOTNET_INSTALLED}" == true ]]; then
@@ -905,20 +910,20 @@ else
     done
 fi
 
-# Set Windows version to XP after .NET installs (matches working config)
-# Check registry for current Windows version
-WINXP_SET=false
+# Set Windows version to 10 after .NET installs
+# Outlands launcher is a modern .NET WPF app that requires Windows 10
 SYSTEM_REG="${WRAPPER_PREFIX}/system.reg"
-if [[ -f "${SYSTEM_REG}" ]] && grep -q '"ProductName"="Microsoft Windows XP"' "${SYSTEM_REG}" 2>&4; then
-    WINXP_SET=true
+WIN10_SET=false
+if [[ -f "${SYSTEM_REG}" ]] && grep -q '"ProductName"="Windows 10 Pro"' "${SYSTEM_REG}" 2>&4; then
+    WIN10_SET=true
 fi
 
-if [[ "${WINXP_SET}" == true ]]; then
-    info "Windows XP mode already set"
+if [[ "${WIN10_SET}" == true ]]; then
+    info "Windows 10 mode already set"
 else
-    warn "Setting Windows version to XP..."
-    sikarugir_cli WSS-winetricks winxp
-    info "Windows XP mode set"
+    warn "Setting Windows version to Windows 10..."
+    sikarugir_cli WSS-winetricks win10
+    info "Windows 10 mode set"
 fi
 
 # =============================================================================
