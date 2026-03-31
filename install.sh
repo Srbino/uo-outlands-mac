@@ -111,8 +111,9 @@ STEP_TOTAL=13
 mkdir -p "${LOG_DIR}"
 
 # Strip ANSI escape sequences for log file
+# LC_ALL=C required: BSD sed on macOS treats \x1b as illegal byte sequence under UTF-8 locales
 strip_ansi() {
-    sed 's/\x1b\[[0-9;]*m//g'
+    LC_ALL=C sed 's/\x1b\[[0-9;]*m//g'
 }
 
 # Duplicate all output to log file (without colors)
