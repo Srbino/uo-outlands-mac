@@ -1,0 +1,16 @@
+Local follow-up run, 2026-10-03. Selected evidence; paths redacted.
+
+Build complete! (0.12s)
+Test Suite 'Selected tests' started at 2026-10-03 23:38:11.269.
+Test Suite 'OutlandsInstallerPackageTests.xctest' started at 2026-10-03 23:38:11.270.
+Test Suite 'FrameworkTests' started at 2026-10-03 23:38:11.270.
+Test Case '-[OutlandsCoreTests.FrameworkTests testReadOnlyRuntimeInspectionWhenRequested]' started.
+Test Case '-[OutlandsCoreTests.FrameworkTests testReadOnlyRuntimeInspectionWhenRequested]' passed (0.218 seconds).
+Test Suite 'FrameworkTests' passed at 2026-10-03 23:38:11.488.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.218 (0.218) seconds
+Test Suite 'OutlandsInstallerPackageTests.xctest' passed at 2026-10-03 23:38:11.488.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.218 (0.218) seconds
+Test Suite 'Selected tests' passed at 2026-10-03 23:38:11.488.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.218 (0.219) seconds
+.NET Framework: Microsoft Framework files and a 4.8+ registry entry are present. Read-only evidence only; execution is tested during installation.
+.NET Framework64: Microsoft Framework files and a 4.8+ registry entry are present. Read-only evidence only; execution is tested during installation.

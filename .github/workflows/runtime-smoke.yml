@@ -1,0 +1,49 @@
+name: Download and Wine smoke test
+on:
+  schedule:
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
+    inputs:
+      full_install:
+        description: 'Also install .NET and the official launcher in a disposable home (requires 20 GB free)'
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      source_ref:
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-26, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+      - name: Install Rosetta on disposable runner
+        run: sudo /usr/sbin/softwareupdate --install-rosetta --agree-to-license
+      - name: Verify pinned downloads and isolated Windows runtime
+        env:
+          OUTLANDS_NETWORK_TESTS: '1'
+          OUTLANDS_TEST_LOGS: ${{ runner.temp }}/outlands-test-logs
+        run: swift test --filter IntegrationTests
+      - name: Full installer acceptance in isolation (opt-in)
+        if: github.event_name == 'workflow_dispatch' && inputs.full_install
+        env:
+          OUTLANDS_FULL_INSTALL_TESTS: '1'
+          OUTLANDS_TEST_LOGS: ${{ runner.temp }}/outlands-test-logs
+        run: swift test --filter FullInstallTests
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: Runtime-logs-${{ matrix.os }}
+          path: ${{ runner.temp }}/outlands-test-logs/*.log
+          if-no-files-found: warn
+          retention-days: 14

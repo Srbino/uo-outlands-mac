@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-04",
+  "swift_tests": {
+    "total": 45,
+    "passed": 39,
+    "skipped": 6,
+    "failures": 0,
+    "warnings_as_errors": true
+  },
+  "build": "release build, strict ad-hoc signature and extracted self-check passed",
+  "ui": [
+    "Settings & scripts selected by default",
+    "Full installation scope shown for old missing record",
+    "File missing and Locate visible",
+    "Locate picker opened and cancelled",
+    "Remove from list alert opened and cancelled; old record preserved",
+    "Final layout inspected at 960-pixel window width; duplicate label removed"
+  ],
+  "production": "Read-only layout inspection; no production files changed or game processes stopped",
+  "limits": [
+    "No manual settings import into production",
+    "No real selective production backup created",
+    "No launcher/gameplay acceptance",
+    "No hosted CI or notarization",
+    "No exhaustive keyboard/VoiceOver/hardware acceptance"
+  ],
+  "sources": [
+    "https://www.razorce.com/faq/",
+    "https://github.com/ClassicUO/ClassicUO/blob/main/src/ClassicUO.Client/Configuration/Settings.cs",
+    "https://github.com/ClassicUO/ClassicUO/wiki/Launch-Arguments"
+  ]
+}

@@ -1,0 +1,109 @@
+name: Signed release candidate
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag, for example v1.0.0'
+        required: true
+        type: string
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: macos-26
+    outputs:
+      commit: ${{ steps.source.outputs.commit }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: source
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          python3 - <<'PYTHON'
+          import os, re
+          assert re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+', os.environ['RELEASE_TAG']), 'Expected vMAJOR.MINOR.PATCH'
+          PYTHON
+          git fetch origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          echo "commit=$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")" >> "$GITHUB_OUTPUT"
+  build-matrix:
+    needs: source
+    uses: ./.github/workflows/ci.yml
+    with:
+      source_ref: ${{ needs.source.outputs.commit }}
+  runtime-matrix:
+    needs: source
+    uses: ./.github/workflows/runtime-smoke.yml
+    with:
+      source_ref: ${{ needs.source.outputs.commit }}
+  full-install:
+    needs: source
+    runs-on: ${{ vars.OUTLANDS_FULL_INSTALL_RUNNER || 'macos-26' }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.source.outputs.commit }}
+      - name: Require sufficient disk space
+        run: |
+          python3 - <<'PYTHON'
+          import os, shutil
+          assert shutil.disk_usage(os.environ['RUNNER_TEMP']).free >= 20_000_000_000, 'Full installation needs 20 GB free. Configure OUTLANDS_FULL_INSTALL_RUNNER to an appropriate disposable arm64 macOS runner.'
+          PYTHON
+      - name: Install Rosetta on disposable runner
+        run: sudo /usr/sbin/softwareupdate --install-rosetta --agree-to-license
+      - name: Full isolated installation
+        env:
+          OUTLANDS_FULL_INSTALL_TESTS: '1'
+          OUTLANDS_TEST_ROOT: ${{ runner.temp }}
+          OUTLANDS_TEST_LOGS: ${{ runner.temp }}/outlands-full-logs
+        run: swift test --filter FullInstallTests
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: Release-full-install-logs
+          path: ${{ runner.temp }}/outlands-full-logs/*.log
+          retention-days: 14
+  release:
+    needs: [source, build-matrix, runtime-matrix, full-install]
+    runs-on: macos-26
+    environment: release
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.source.outputs.commit }}
+      - name: Validate release version
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, re
+          tag = os.environ['RELEASE_TAG']
+          assert re.fullmatch(r'v\d+\.\d+\.\d+', tag), 'Use a stable release tag'
+          source = pathlib.Path('Sources/OutlandsCore/Support.swift').read_text()
+          version = re.search(r'let version = "([^"]+)"', source).group(1)
+          assert tag == 'v' + version, 'Tag does not match the app version'
+          PY
+      - name: Test release source
+        run: swift test -Xswiftc -warnings-as-errors
+      - name: Build, sign, notarize and staple
+        env:
+          APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: python3 tools/release.py
+      - name: Create a draft release for final review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: gh release create "$RELEASE_TAG" dist/*.zip dist/SHA256SUMS dist/build-info.json --verify-tag --draft --title "Outlands Installer $RELEASE_TAG" --notes-file docs/RELEASE_NOTES.md

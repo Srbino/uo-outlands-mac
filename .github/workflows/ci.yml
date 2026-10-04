@@ -1,0 +1,57 @@
+name: macOS build and tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      source_ref:
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, macos-15, macos-26, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+      - name: Record test platform
+        run: |
+          sw_vers
+          uname -m
+          swift --version
+      - name: Unit tests
+        run: swift test -Xswiftc -warnings-as-errors
+      - name: Upstream checker tests
+        run: python3 -m unittest discover -s tools -p 'test_*.py'
+      - name: Bounded checksum memory regression
+        run: python3 tools/verify_backup_resources.py --qa-root "$PWD/.qa/bounded-memory"
+      - name: Build standalone application
+        run: python3 tools/build.py
+      - name: Verify packaged app outside the checkout
+        run: |
+          VERIFY_DIR=$(mktemp -d)
+          ditto "dist/Outlands Installer.app" "$VERIFY_DIR/Outlands Installer.app"
+          cd "$VERIFY_DIR"
+          "./Outlands Installer.app/Contents/MacOS/OutlandsInstaller" --self-check
+          codesign --verify --strict "Outlands Installer.app"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Outlands-Installer-${{ matrix.os }}
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS
+            dist/build-info.json
+          if-no-files-found: error
+          retention-days: 14

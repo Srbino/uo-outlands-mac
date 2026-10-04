@@ -1,0 +1,10 @@
+{
+  "version": "0.9.0",
+  "architecture": "arm64",
+  "notarized": false,
+  "signing": "ad-hoc",
+  "artifact": "Outlands-Installer-0.9.0-arm64.zip",
+  "bytes": 2201862,
+  "sha256": "d9566e104e23ae098341feba73d3d6defacfa5bc0af41280eaa7856c204b6074",
+  "evidence": "2026-10-04 final beta preparation: 57 normal Swift tests (7 opt-in skips), 6 targeted process/Wine tests without skips, 11 Python tests, warnings-as-errors release build, strict extracted signature and self-check passed. Bounded large archive checks recorded separately. Ad-hoc only; release acceptance remains open."
+}

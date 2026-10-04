@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-04",
+  "targeted_tests": 6,
+  "passed": 6,
+  "skipped": 0,
+  "real_wine": "Disposable external QA wrapper only; selected prefix stopped; production identities unchanged",
+  "ambiguous_engine": "Missing prefix blocks ownership and shutdown; fixture remains alive",
+  "exit_race": "Identity rechecked after unavailable environment; disappeared or replaced identity ignored",
+  "limits": "Adversarial PID churn and arbitrary external engines not certified"
+}

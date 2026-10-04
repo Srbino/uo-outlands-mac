@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-04",
+  "swift_tests": {
+    "total": 40,
+    "passed": 34,
+    "skipped": 6,
+    "failures": 0,
+    "warnings_as_errors": true
+  },
+  "python_tests": {
+    "passed": 4,
+    "failures": 0
+  },
+  "actionlint": "passed",
+  "git_diff_check": "passed",
+  "release_build": "passed",
+  "packaged_self_check": "passed",
+  "extracted_self_check": "passed",
+  "archive_cases": [
+    "parent traversal",
+    "absolute path",
+    "newline path",
+    "case collision",
+    "FIFO",
+    "external hard link",
+    "cyclic hard links",
+    "symlink ancestor",
+    "hard link to symlink",
+    "redirected Info.plist",
+    "understated expanded size",
+    "payload symlink",
+    "source replacement after private copy",
+    "cancelled restore cleanup",
+    "source mutation with preserved mtime",
+    "valid hard link and external symlink"
+  ],
+  "limits": [
+    "No new game install or launcher GUI acceptance",
+    "No hosted CI",
+    "No notarization or Gatekeeper acceptance",
+    "No oldest macOS or hardware interruption testing",
+    "UI interaction/accessibility not reverified"
+  ]
+}

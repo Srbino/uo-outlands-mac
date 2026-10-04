@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-04",
+  "swift_tests": {
+    "total": 53,
+    "passed": 47,
+    "skipped": 6,
+    "failures": 0,
+    "warnings_as_errors": true
+  },
+  "python_tests": 4,
+  "actionlint": "passed",
+  "whitespace": "passed",
+  "packaged_and_extracted_self_check": "passed",
+  "signature": "ad-hoc; strict verification passed; not notarized",
+  "ui_verified": [
+    "Game distinguishes installation found from local checks/startup",
+    "Catalog names/sort/refresh and separate missing/last-check metadata",
+    "Production settings preview read-only: about 32.7 MB uncompressed",
+    "Escape cancels preview",
+    "Command-2 navigation observed after refresh"
+  ],
+  "isolated_tests": [
+    "selected apply/Undo preserves unselected files and game assets",
+    "source change rejected",
+    "swap failure rollback",
+    "cancelled preparation cleanup",
+    "redirected target and unrelated Undo rejected",
+    "interrupted rename recovery",
+    "completed journal retains Undo; unsafe journal rejected"
+  ],
+  "limits": [
+    "No production backup/apply/Undo or process shutdown",
+    "No launcher/gameplay acceptance",
+    "VoiceOver and full keyboard focus not verified",
+    "Recovery-sheet interaction coverage incomplete due external UI state changes",
+    "No hardware power-loss, oldest-macOS or hosted-CI/notarization acceptance"
+  ]
+}

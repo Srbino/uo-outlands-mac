@@ -1,0 +1,6 @@
+Local follow-up run, 2026-10-03. Selected evidence; paths redacted.
+
+Build complete! (4.48s)
+<CHECKOUT>/dist/Outlands Installer.app: valid on disk
+<CHECKOUT>/dist/Outlands Installer.app: satisfies its Designated Requirement
+Outlands Installer 0.9.0: recipe 2, WS12WineSikarugir11.0_1.tar.xz, Template-1.0.21.tar.xz

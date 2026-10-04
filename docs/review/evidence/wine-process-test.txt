@@ -1,0 +1,17 @@
+Historical local run, 2026-10-03. Selected result lines; paths redacted.
+This is evidence of that run, not a replay against future revisions.
+
+Build complete! (2.50s)
+Test Suite 'Selected tests' started at 2026-10-03 22:29:37.190.
+Test Suite 'OutlandsInstallerPackageTests.xctest' started at 2026-10-03 22:29:37.191.
+Test Suite 'WineProcessTests' started at 2026-10-03 22:29:37.191.
+Test Case '-[OutlandsCoreTests.WineProcessTests testStopOnlyDisposableWineWrapper]' started.
+Test Case '-[OutlandsCoreTests.WineProcessTests testStopOnlyDisposableWineWrapper]' passed (3.837 seconds).
+Test Suite 'WineProcessTests' passed at 2026-10-03 22:29:41.029.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.837 (3.838) seconds
+Test Suite 'OutlandsInstallerPackageTests.xctest' passed at 2026-10-03 22:29:41.029.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.837 (3.838) seconds
+Test Suite 'Selected tests' passed at 2026-10-03 22:29:41.029.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.837 (3.839) seconds
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
