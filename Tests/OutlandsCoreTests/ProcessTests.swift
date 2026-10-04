@@ -2,10 +2,15 @@ import XCTest
 @testable import OutlandsCore
 
 final class ProcessTests: XCTestCase {
-    private func sign(_ url: URL) throws {
-        let signer = Process(); signer.executableURL = URL(fileURLWithPath: "/usr/bin/codesign")
-        signer.arguments = ["--force", "--sign", "-", url.path]
-        try signer.run(); signer.waitUntilExit(); XCTAssertEqual(signer.terminationStatus, 0)
+    private func makeSleeper(_ url: URL) throws {
+        // Re-signing a copied Apple platform binary can make it unlaunchable on older Macs.
+        // Compile a plain fixture so the test exercises our process ownership checks.
+        let source = url.deletingLastPathComponent().appendingPathComponent("fixture.c")
+        try Data("#include <unistd.h>\n#include <signal.h>\nint main(void) { signal(SIGTERM, SIG_DFL); sigset_t mask; sigemptyset(&mask); sigprocmask(SIG_SETMASK, &mask, 0); sleep(30); return 0; }\n".utf8).write(to: source)
+        let compiler = Process(); compiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+        compiler.arguments = ["clang", "-Wall", "-Wextra", "-Werror", source.path, "-o", url.path]
+        try compiler.run(); compiler.waitUntilExit()
+        guard compiler.terminationStatus == 0 else { throw InstallerError("Cannot compile process fixture") }
     }
 
     func testOnlySelectedWrapperProcessesAreStopped() async throws {
@@ -17,8 +22,7 @@ final class ProcessTests: XCTestCase {
         let other = root.appendingPathComponent("outlands.app-other")
         for folder in [app, other] {
             try fm.createDirectory(at: folder, withIntermediateDirectories: true)
-            try fm.copyItem(atPath: "/bin/sleep", toPath: folder.appendingPathComponent("sleep").path)
-            try sign(folder.appendingPathComponent("sleep"))
+            try makeSleeper(folder.appendingPathComponent("sleep"))
         }
         let own = Process(); own.executableURL = app.appendingPathComponent("sleep"); own.arguments = ["30"]
         let unrelated = Process(); unrelated.executableURL = other.appendingPathComponent("sleep"); unrelated.arguments = ["30"]
@@ -40,14 +44,13 @@ final class ProcessTests: XCTestCase {
         try fm.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? fm.removeItem(at: root) }
         let executable = root.appendingPathComponent("wine")
-        try fm.copyItem(atPath: "/bin/sleep", toPath: executable.path)
-        try sign(executable)
+        try makeSleeper(executable)
         let process = Process(); process.executableURL = executable; process.arguments = ["30"]
         process.environment = ["WINEPREFIX": "/another-app/prefix"]
         try process.run(); defer { if process.isRunning { process.terminate() } }
         try await Task.sleep(nanoseconds: 100_000_000)
         XCTAssertTrue(try GameProcesses.owned(by: root).isEmpty)
-        XCTAssertTrue(process.isRunning)
+        XCTAssertTrue(process.isRunning, "Compiled fixture must remain alive")
     }
     func testSettingsBackupDistinguishesKnownWineServicesFromApplications() {
         func process(_ name: String, executable: String = "/fixture/wine") -> GameProcess {
@@ -67,13 +70,13 @@ final class ProcessTests: XCTestCase {
         try fm.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? fm.removeItem(at: root) }
         let executable = root.appendingPathComponent("wine")
-        try fm.copyItem(atPath: "/bin/sleep", toPath: executable.path)
-        try sign(executable)
+        try makeSleeper(executable)
         let child = Process(); child.executableURL = executable; child.arguments = ["30"]
         child.environment = [:]
         try child.run()
-        defer { if child.isRunning { child.terminate(); child.waitUntilExit() } }
+        defer { if child.isRunning { child.terminate() } }
         try await Task.sleep(nanoseconds: 100_000_000)
+        XCTAssertTrue(child.isRunning, "Compiled fixture must be alive before inspecting ownership")
         XCTAssertThrowsError(try GameProcesses.owned(by: root))
         XCTAssertThrowsError(try GameProcesses.requireClosed(root))
         XCTAssertThrowsError(try GameProcesses.requireSettingsClosed(root))
