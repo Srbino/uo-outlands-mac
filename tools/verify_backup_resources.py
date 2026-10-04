@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import tempfile
@@ -34,10 +35,20 @@ def main():
         if not objects:
             raise SystemExit('Run swift test --jobs 2 first to build the core.')
         compile_command = ['swiftc', '-parse-as-library', '-warnings-as-errors',
-                           '-I', str(bindir / 'Modules'), '-I', str(ROOT / 'Sources/CArchive'),
+                           '-I', str(bindir / 'Modules'), '-I', str(bindir),
+                           '-I', str(ROOT / 'Sources/CArchive'),
                            str(ROOT / 'tools/backup_memory_probe.swift'),
                            *map(str, objects), '-larchive.2', '-o', str(probe)]
-        resource_guard.run(compile_command, cwd=ROOT, output=work / 'compiler.txt')
+        compiler_log = work / 'compiler.txt'
+        try:
+            resource_guard.run(compile_command, cwd=ROOT, output=compiler_log)
+        except RuntimeError:
+            if compiler_log.exists():
+                shutil.copy2(compiler_log, qa / 'last-compiler-failure.txt')
+                if ci:
+                    with compiler_log.open('rb') as log:
+                        print(log.read(8192).decode('utf-8', errors='replace'), flush=True)
+            raise
         fixture = work / 'hash-fixture.bin'
         with fixture.open('wb') as file:
             for _ in range(16):
