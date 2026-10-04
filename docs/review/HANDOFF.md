@@ -1,6 +1,6 @@
 # Handoff for the next coding agent
 
-Status on 2026-10-03: release candidate **0.9.0 beta**, not releasable. Everything below is uncommitted local work on `main` (parent `37cffc2`). Read `docs/REVIEW.md` first, then this file.
+Status on 2026-10-03: release candidate **0.9.0 beta**, not releasable. This was originally uncommitted local work (parent `37cffc2`); the beta was subsequently merged through PR #1 on 2026-10-04. Read `docs/REVIEW.md` first, then this file.
 
 ## Hard rules
 
@@ -161,3 +161,7 @@ The owner authorized continuing toward GitHub beta integration; this does not au
 Final normal baseline: 57 Swift tests, 7 opt-in skips, 50 passed, 0 failures, warnings as errors; 11 Python tests passed. Release integration is beta only. Launcher/login/gameplay, complete accessibility, Apple signing/notarization and hosted workflow execution remain explicit acceptance boundaries. No tag or stable release is part of this integration.
 
 Final scoped-process validation: 6 targeted tests passed without skips, including real Wine shutdown in the disposable external wrapper and unchanged production process identities. A Wine child disappearing between identity and environment reads is ignored only after the kernel identity no longer matches; live ambiguous engines still block shutdown.
+
+## GitHub beta integration completed — 2026-10-04
+
+PR #1 merged as a8a7a70 after the normal macOS 14/15/26/latest matrix passed for b783667. See evidence/hosted-ci.json and the current ACCEPTANCE.md. Earlier unverified-CI statements describe dated local observations. Full-install/release workflows, signing/notarization, visible game login, full accessibility and hardware interruption acceptance remain open. No stable release/tag was created.

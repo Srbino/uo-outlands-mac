@@ -129,7 +129,7 @@ The project currently has no third-party Swift package dependencies. Dependabot 
 
 GitHub's current runner list identifies `macos-latest` as Apple Silicon macOS 26; this alias can change. The explicit `macos-26` job keeps Tahoe coverage. [Runner source](https://github.com/actions/runner-images#available-images).
 
-See [TESTING.md](docs/TESTING.md) for test boundaries and the remaining clean-Mac acceptance checklist. Workflow configuration is included in this source tree; hosted results are available only after it is pushed and run in GitHub Actions.
+See [TESTING.md](docs/TESTING.md) for test boundaries and the remaining clean-Mac acceptance checklist. The beta implementation passed the [hosted macOS 14/15/26/latest matrix](https://github.com/Srbino/uo-outlands-mac/actions/runs/37199468538), including tests, bounded memory checks and packaged-app verification. This does not certify fresh game login, accessibility or notarization.
 
 ## Upstream review: 2026-10-03
 

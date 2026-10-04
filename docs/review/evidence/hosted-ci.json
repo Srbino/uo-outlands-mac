@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-04",
+  "source_head": "b783667d8291a108082c8feb6b3f3481b5fc7178",
+  "merge_commit": "a8a7a70e06d558a02307d339d467dc7e8fd1655e",
+  "pr": "https://github.com/Srbino/uo-outlands-mac/pull/1",
+  "run": "https://github.com/Srbino/uo-outlands-mac/actions/runs/37199468538",
+  "conclusion": "success",
+  "runners": [
+    "macos-14",
+    "macos-15",
+    "macos-26",
+    "macos-latest"
+  ],
+  "checks": [
+    "57 Swift tests: 50 passed, 7 opt-in skips",
+    "11 Python tests",
+    "Resource-supervised checksum regression",
+    "Ad-hoc arm64 application build",
+    "Extracted strict signature and self-check",
+    "Build artifact upload"
+  ],
+  "limits": [
+    "No complete fresh game installation/login",
+    "No Developer ID/notarization",
+    "No full accessibility or hardware interruption acceptance",
+    "Release/full-install workflows not executed"
+  ],
+  "publication": "Beta source integration only; no tag/release"
+}

@@ -29,7 +29,7 @@ This is local verification on one M4 Mac running macOS 26.5.1, not independent a
 | Memory regression | Passed under watchdog | >2 GB cumulative checksum reads, full verify/restore/compare; resource guard and cleanup tests; no universal memory guarantee |
 | Packaged app | Passed locally | Warnings-as-errors build, extracted resource self-check, strict ad-hoc signature; desktop shortcut updated |
 | Keyboard / VoiceOver | Partial / NOT VERIFIED | Escape passed; page shortcuts not reliably observed; full focus order and VoiceOver acceptance open |
-| CI / release | Static checks and local guard passed | Hosted matrix has not run for this uncommitted snapshot; Developer ID, notarization and clean-machine Gatekeeper require owner credentials and execution |
+| CI / release | [Hosted macOS 14/15/26/latest matrix passed](https://github.com/Srbino/uo-outlands-mac/actions/runs/37199468538); static checks and local guard passed | Beta source b783667; Developer ID, notarization, full-install workflow and clean-machine Gatekeeper remain unverified |
 | Other macOS / hardware interruptions | NOT VERIFIED | macOS 14.6, external unplug, reboot/power interruption, no-Rosetta and graphics/audio/login acceptance need dedicated hardware/account testing |
 
 ## Reproduce bounded memory checks
