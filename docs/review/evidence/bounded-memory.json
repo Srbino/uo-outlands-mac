@@ -1,0 +1,32 @@
+{
+  "hash": {
+    "peak_footprint_bytes": 4342216,
+    "memory_limit_bytes": 268435456,
+    "startup_reserve_bytes": 10737418240,
+    "seconds": 1.123
+  },
+  "compare": {
+    "peak_footprint_bytes": 17662480,
+    "memory_limit_bytes": 268435456,
+    "startup_reserve_bytes": 10737418240,
+    "seconds": 34.76,
+    "files": 15315,
+    "links": 262,
+    "source_unchanged": true
+  },
+  "verify": {
+    "peak_footprint_bytes": 12059152,
+    "memory_limit_bytes": 268435456,
+    "startup_reserve_bytes": 10737418240,
+    "seconds": 19.774,
+    "archive_bytes": 6972423983
+  },
+  "restore": {
+    "peak_footprint_bytes": 13107728,
+    "memory_limit_bytes": 268435456,
+    "startup_reserve_bytes": 10737418240,
+    "seconds": 53.585
+  },
+  "status": "Targeted memory regression and QA full-backup comparison passed under resource guard; not a full release sign-off",
+  "raw_system_reports_included": false
+}

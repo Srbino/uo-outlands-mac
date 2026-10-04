@@ -1,344 +1,180 @@
-# UO Outlands Mac Installer
+# Outlands for Mac
 
-Automated installation script for [UO Outlands](https://uooutlands.com/) on Apple Silicon Macs using Wine + [Sikarugir](https://github.com/Sikarugir-App).
+A native macOS installer for **UO Outlands on Apple Silicon**. Download an app, follow the setup, and let the official Outlands launcher download the game.
 
-## Requirements
+[![macOS build and tests](https://github.com/Srbino/uo-outlands-mac/actions/workflows/ci.yml/badge.svg)](https://github.com/Srbino/uo-outlands-mac/actions/workflows/ci.yml)
+[![Runtime smoke test](https://github.com/Srbino/uo-outlands-mac/actions/workflows/runtime-smoke.yml/badge.svg)](https://github.com/Srbino/uo-outlands-mac/actions/workflows/runtime-smoke.yml)
 
-- Apple Silicon Mac (M1/M2/M3/M4)
-- macOS 13 (Ventura) or later
-- ~10 GB free disk space
-- [Homebrew](https://brew.sh) installed
-- Internet connection
+[Releases](https://github.com/Srbino/uo-outlands-mac/releases) · [Report a problem](https://github.com/Srbino/uo-outlands-mac/issues/new/choose)
 
-## Installation
+> **Release status:** the native installer is a release candidate. **Stable release is blocked:** earlier clean-prefix launcher probes exited 255. Registering the intended game directory now prevents the immediate exit and allowed game downloads in an isolated test, but a working launcher window and gameplay remain unverified. The complete installer pipeline passed, but launcher startup and gameplay are not yet verified. Builds and automated checks are available, but a clean installation through first login and gameplay still needs the hardware acceptance checks in [TESTING.md](docs/TESTING.md). Do not interpret a green build as a guarantee that every Wine/game combination works. Outlands [does not officially support macOS](https://wiki.uooutlands.com/Install_UO_on_Mac).
 
-### One-liner (copy & paste into Terminal)
+![Native Outlands Installer interface](docs/installer.png)
 
-```bash
-/bin/bash -c "$(curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/install.sh' -H 'Accept: application/vnd.github.raw')"
-```
+## Independent review
 
-### Step by step
+The complete review brief, source map, known blockers, UI/UX acceptance matrix and local test evidence start in [docs/REVIEW.md](docs/REVIEW.md). Run `python3 tools/prepare_review.py` to create a source snapshot including untracked files, with a verified SHA-256 manifest. This is preparation for independent review, not a completed review.
 
-If you've never used Terminal before:
+## Install
 
-1. Open **Terminal** (press `Cmd + Space`, type `Terminal`, hit Enter)
-2. Install [Homebrew](https://brew.sh) (if you don't have it) — paste this and follow the prompts:
-   ```bash
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-   **Important:** After Homebrew install, follow the instructions it prints to add it to your PATH:
-   ```bash
-   echo >> ~/.zprofile
-   echo 'eval "$(/opt/homebrew/bin/brew shellenv zsh)"' >> ~/.zprofile
-   eval "$(/opt/homebrew/bin/brew shellenv zsh)"
-   ```
-3. Download and run the installer:
-   ```bash
-   curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/install.sh' -H 'Accept: application/vnd.github.raw' -o install.sh
-   chmod +x install.sh
-   ./install.sh
-   ```
-4. Follow the on-screen instructions. The Outlands installer GUI will pop up — install the game and **close the installer window** when done.
-5. Launch the game by double-clicking `outlands.app` in `~/Applications/Sikarugir/`
+1. Open [Releases](https://github.com/Srbino/uo-outlands-mac/releases) and download `Outlands-Installer-<version>-arm64.zip` from a **published, notarized release**. If no native release is published yet, use the developer build instructions below; the source ZIP is not an installable application.
+2. Unzip it, drag **Outlands Installer.app** into Applications, and open it.
+3. Click **Install Outlands**. If Rosetta is missing, review Apple's licence and enable the Rosetta installation option. macOS may request permission to install it.
+4. Keep your Mac awake and online. Runtime setup can take 15–45 minutes and may display Microsoft installer windows. Complete them if requested.
+5. When installation checks pass, click **Open Outlands**. Let the official launcher finish downloading and verifying the game before playing.
 
-The script will install and configure everything automatically:
-- Rosetta 2
-- Wine Stable + Sikarugir (via Homebrew)
-- Latest Wine engine + wrapper template (auto-detected from GitHub)
-- Outlands wrapper with D3DMetal, WINEESYNC/WINEMSYNC
-- .NET Framework runtimes (dotnet20sp2, dotnet40, dotnet481) with validation
-- UO Outlands game client
+No Terminal, Homebrew, Python or Xcode is required for an end-user release. The installer is written in Swift/SwiftUI; it invokes the pinned upstream Winetricks tool for Microsoft runtimes. It does not run the old `install.sh`.
 
-## Diagnostics
+### Requirements
 
-If the game doesn't start, run the diagnostic script:
+| Requirement | Details |
+| --- | --- |
+| Mac | Apple Silicon (M-series); Intel is not supported by this installer |
+| macOS | **14.6 or later**, matching the current Sikarugir requirement |
+| Free space | At least **20 GB**, or **30 GB** for a rebuild; larger existing installations may need more |
+| Network | HTTPS access to GitHub, Microsoft and Outlands; runtime mirrors may also be used by Winetricks |
+| Rosetta 2 | Verified by running an Intel executable; installed only with the user's licence consent |
 
-```bash
-curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/helpers/fix-and-diagnose.sh' -H 'Accept: application/vnd.github.raw' | bash
-```
+## What the app handles
 
-This auto-fixes known issues and validates 13 checkpoints including Wine, .NET, engine libraries, quarantine, and game files.
+- Guided setup, current step, elapsed time, live logs, cancellation and retry.
+- Pinned Sikarugir engine, wrapper template and macOS Winetricks fork, with SHA-256 and exact size checks. Corrupt cached files are downloaded again.
+- Downloads are written to temporary files before use; HTML error pages are rejected as launchers.
+- A separate staging application, a lock against concurrent installers, scoped Wine cleanup, and a Windows command smoke test.
+- .NET validation checks both framework runtime files and the registry release value for **4.8**. A successful subprocess exit alone is insufficient.
+- Read-only installation diagnostics and a reviewed GitHub issue draft. No account token or automatic log upload is required.
+- Optional update checks against this repository's stable GitHub releases, at most once daily. Updates open the release page; the app does not silently replace itself or change the installed Wine engine.
 
-### Manual Wine launch (for debugging)
+### Existing installations and recovery
 
-```bash
-curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/helpers/launch-direct.sh' -H 'Accept: application/vnd.github.raw' | bash
-```
+The installer detects `~/Applications/Sikarugir/outlands.app`. Use **Open Outlands** or **Check installation** without changing it.
+
+**Rebuild with backup** copies the existing Windows prefix, game files and profiles into staging and applies the new runtime there. Close the game and launcher first. Only after validation does the installer move the original app to `outlands-backup-<id>.app` and promote the new copy. Keep that backup until you have verified your profiles and gameplay; it is not automatically deleted.
+
+A failed or cancelled install leaves staging available for retry. If an older recipe or an unrecognised staging folder is present, the app stops and shows its location. Use **Preserve staging & start fresh** to keep that copy under a separate name before retrying; do not delete it if it may contain files you need. An interrupted final rename can leave the original under its backup name; restore it in Finder while the installer and game are closed.
+
+### Locations
+
+| Item | Location |
+| --- | --- |
+| Game and profiles | `~/Applications/Sikarugir/outlands.app` |
+| In-progress installation | `~/Applications/Sikarugir/.outlands-installing.app` |
+| Rebuild backups | `~/Applications/Sikarugir/outlands-backup-<id>.app` |
+| Verified component and runtime caches | `~/Library/Caches/OutlandsInstaller/` |
+| Installer logs | `~/Library/Logs/OutlandsInstaller/` |
+| Installation lock | `~/Library/Application Support/OutlandsInstaller/` |
+
+The app does not install global audio settings, kill unrelated Wine processes, remove other Sikarugir wrappers, or merge libraries from unrelated Wine builds.
+
+## Troubleshooting and reporting
+
+| Problem | Next step |
+| --- | --- |
+| macOS blocks the installer | Use a notarized release from this repository. CI and local builds are ad-hoc signed, not notarized. Do not disable Gatekeeper globally. See [release setup](docs/RELEASING.md). |
+| Download interrupted or checksum mismatch | Retry with a stable connection. Invalid cached components are replaced; upstream asset changes require a reviewed installer update. |
+| .NET setup appears stuck | Check for an open Microsoft setup window and expand **Installation log**. Use **Stop installation** if necessary, then retry. |
+| Launcher ready, but no game files | Open the Outlands launcher and finish its first download. Use its **Verify** function for game-file problems. |
+| Nothing happens when opening the game | Close the game/launcher, run **Check installation**, and review diagnostics. File checks alone do not prove that graphics or login work. |
+| Existing game stopped working | Keep the backup. Close both apps before restoring the original wrapper in Finder. |
+| Audio crackles | Connect the output device before launching. Try wired audio or 48 kHz in Audio MIDI Setup. No global audio workaround is applied automatically. |
+
+Choose **Report a problem…**, describe what happened, and review the report. **Continue to GitHub** opens a prefilled public issue draft; you submit it yourself after signing in. Installer failures never silently post anything.
+
+**Export diagnostics…** saves the report and the last 128 KB of the installer log. Home paths, common secret patterns and email addresses are redacted. Redaction cannot recognise every secret: review the file before attaching it. The installer does not collect game profiles, account credentials, hostnames or environment dumps. See [privacy details](docs/PRIVACY.md).
+
+## Archive and restore everything
+
+The **Backups** page defaults to **Settings & scripts**. Use **Create backup…**, **Add existing…** or **Restore…**.
+
+- **Create backup…** opens a read-only preview showing file counts, profile files, scripts/macros, uncompressed size and excluded linked data. Compressed size is known only after creation. Close Outlands, Razor and the launcher first. The recommended backup saves ClassicUO settings.json, character profiles (including interface settings, hotkeys and macros), Razor profiles/scripts/macros and configuration files. Both Assistant and legacy Razor layouts are supported. Shared client settings, map icons and fonts are included; game assets, Wine, plugin binaries and journal logs are excluded.
+- **Full installation** is an optional complete recovery copy of outlands.app, including game downloads and the Wine runtime. Existing full backups remain readable. Settings backups use manifest format 2; full backups use format 1.
+- Each .outlandsbackup folder contains outlands.tar.gz and a dated JSON manifest with scope, sizes and SHA-256. Keep both files together. Creation finishes only after checksum and full archive-read verification; failed/cancelled temporary output is removed.
+- Restore first creates a separate recovery folder. For settings backups, choose **Review & apply…**, search and select individual files, then apply them while Outlands is closed. Unselected files remain unchanged. The installer prepares a copy of the current ClassicUO directory, overlays the selected settings and swaps directories, preserving the original as ClassicUO-before-settings-… for **Undo restore…**. Game assets and Wine are outside this swap. Preparing ClassicUO needs additional disk space; retained recovery directories are never deleted automatically. Manual copy instructions remain included. Full recovered installations offer explicit activation that preserves the previous installation.
+- Restore copies the payload into private staging and validates that copy before extraction. Verification reads file bodies, checks expanded sizes and rejects unsafe paths, duplicate names, special files and unsafe link chains. Restore needs space for the compressed copy, expanded files and a safety margin.
+- Backups are local and **unencrypted**, and may include stored account information. They are never attached to issue reports. External symbolic-link targets are not included. Redirected settings roots and a nonstandard ClassicUO profilespath produce an explicit error; back up those locations separately. Custom launcher arguments and third-party plugins are outside the selective backup coverage. Full backups include only files inside the wrapper.
+- The catalog supports custom names, notes, sorting and **Refresh locations**. Availability and the date of the last integrity check are shown separately. The catalog remembers a backup's location, date, size, type and notes; it does not store another copy of the archive. **File missing** means the saved path is absent. **Locate…** verifies a moved backup and reconnects a matching record. **Remove from list…** removes only catalog metadata and never deletes files. Backups are not deleted automatically.
+- Keep the game and launcher closed throughout backup. Settings-only backups allow recognized Wine background services; active or unknown applications still block them. Full backups require every process in the selected Wine prefix to exit. The preview checks this before asking for a destination. Metadata comparisons include change timestamps, but are a consistency check rather than a filesystem snapshot.
+
+The selection is based on the [Razor migration FAQ](https://www.razorce.com/faq/), the [ClassicUO settings implementation](https://github.com/ClassicUO/ClassicUO/blob/main/src/ClassicUO.Client/Configuration/Settings.cs) and a read-only inspection of the current Outlands layout. The [ClassicUO launch documentation](https://github.com/ClassicUO/ClassicUO/wiki/Launch-Arguments) also describes custom settings/profile paths, which require separate handling.
 
 ## Uninstall
 
-```bash
-# Remove game only (wrapper + Sikarugir data)
-./install.sh --uninstall
+Close Outlands and its launcher. In Finder, move `~/Applications/Sikarugir/outlands.app` to the Trash. **This includes game files and profiles**; copy any profiles you want to keep first. Backups, caches and installer logs can be removed separately when no longer needed. Remove Outlands Installer.app like any other Mac app.
 
-# Remove everything including Wine and Sikarugir brew casks
-./install.sh --purge
+Do not remove the entire `~/Library/Application Support/Sikarugir` directory: other wrappers may use it. Rosetta and any Homebrew/Wine software installed by older versions are shared dependencies and are not removed by this app.
+
+## Build from source
+
+Maintainers need macOS 14.6+, Apple Silicon, Python 3.9+ and Xcode Command Line Tools with Swift 5.9 or newer.
+
+```console
+swift test -Xswiftc -warnings-as-errors
+python3 tools/build.py
+open "dist/Outlands Installer.app"
 ```
 
-## What It Installs
+Output: standalone `.app`, distributable ZIP, `SHA256SUMS`, and signing metadata under `dist/`. This build is **ad-hoc signed**. Publishing a smooth end-user experience requires a Developer ID certificate and Apple notarization; [RELEASING.md](docs/RELEASING.md) explains the configured pipeline.
 
-| Component | Location |
-|-----------|----------|
-| Wrapper | `~/Applications/Sikarugir/outlands.app` |
-| Engines/Templates | `~/Library/Application Support/Sikarugir/` |
-| Wine Stable | `/Applications/Wine Stable.app` (via Homebrew) |
-| Sikarugir Creator | `/Applications/Sikarugir Creator.app` (via Homebrew) |
-| Install log | `~/Library/Logs/outlands_install_*.log` |
-| Debug log | `~/Library/Logs/outlands_install_*_debug.log` |
-| Audio fix | `~/Library/LaunchAgents/com.sikarugir.outlands.audio.plist` |
+### Continuous checks and updates
 
-## Features
+| Workflow | Runs | Checks |
+| --- | --- | --- |
+| [macOS build and tests](.github/workflows/ci.yml) | Push, pull request, manual | Unit tests, release build, bundle resources and signature on macOS 14/15/26 and `macos-latest` |
+| [Download and Wine smoke test](.github/workflows/runtime-smoke.yml) | Weekly, manual | Real pinned downloads, hashes, extraction, prefix creation and a Windows command on macOS 15/26/latest |
+| [Upstream component review](.github/workflows/upstream.yml) | Weekly, manual | Detects new Sikarugir/Winetricks versions and opens a recipe-update PR for review |
+| [Dependabot](.github/dependabot.yml) | Weekly | Updates pinned GitHub Actions dependencies |
+| [Signed release candidate](.github/workflows/release.yml) | Manual, protected `release` environment | Tests, Developer ID signing, notarization, stapling and a draft GitHub release |
 
-- Bash 3.2 compatible (stock macOS `/bin/bash`)
-- Idempotent — safe to re-run, skips completed steps, fixes missing components
-- Auto-detects latest engine and template versions from GitHub
-- All downloads verified (`curl -f`, non-empty check)
-- .NET Framework validation (detects Wine Mono stubs vs real DLLs)
-- Wine smoke test after engine injection
-- Missing shared library auto-copy from Wine Stable.app
-- Quarantine attribute clearing (Homebrew 5.x compatibility)
-- Cleanup trap for temp files on failure
-- Full install log + separate bash trace debug log
+The project currently has no third-party Swift package dependencies. Dependabot watches Actions; the separate upstream checker watches downloaded runtime components. Neither auto-merges or updates working game installations.
 
-## Manual Installation via Sikarugir Creator
+GitHub's current runner list identifies `macos-latest` as Apple Silicon macOS 26; this alias can change. The explicit `macos-26` job keeps Tahoe coverage. [Runner source](https://github.com/actions/runner-images#available-images).
 
-If the automated script fails on .NET installation, you can install manually through Sikarugir Creator:
+See [TESTING.md](docs/TESTING.md) for test boundaries and the remaining clean-Mac acceptance checklist. Workflow configuration is included in this source tree; hosted results are available only after it is pushed and run in GitHub Actions.
 
-1. Open `/Applications/Sikarugir Creator.app`
-2. Create new wrapper named `outlands` in `~/Applications/Sikarugir/`
-3. Select engine: **WS12WineSikarugir 10.0**
-4. Configure graphics:
-   - **D3DMETAL: ON** (critical)
-   - **MOLTENVKCX: ON**
-   - **WINEESYNC: ON**
-   - **WINEMSYNC: ON**
-   - DXVK: OFF, DXMT: OFF, D9VK: OFF
-5. Install .NET via Winetricks (in this exact order):
-   - `remove_mono`
-   - `dotnet20sp2`
-   - `dotnet40`
-   - `dotnet481`
-6. Set Windows version to **Windows 10** (via winecfg or Winetricks `win10`)
-7. Set program path: `/Program Files (x86)/Ultima Online Outlands/Outlands.exe`
-8. Download Outlands.exe from https://patch.uooutlands.com/download into the wrapper's `drive_c/Program Files (x86)/Ultima Online Outlands/`
+## Upstream review: 2026-10-03
 
-## Audio Setup
+- [Sikarugir](https://github.com/Sikarugir-App/Sikarugir) now requires **macOS 14.6+**.
+- [Homebrew wine-stable](https://formulae.brew.sh/cask/wine-stable) is **disabled**. The native installer therefore uses upstream Sikarugir components directly.
+- The recipe pins **WS12WineSikarugir11.0_1**, **Template 1.0.21**, and commit **0814a5a** of Sikarugir's `sikarugir` Winetricks branch. That fork supplies the `dotnet48` verb and macOS library-path handling. See the [exact manifest](Sources/OutlandsCore/recipe.json).
+- The wrapper repository is now [Sikarugir-App/Template](https://github.com/Sikarugir-App/Template/releases/tag/v1.0). Download URLs are taken from upstream release metadata, not guessed from filenames.
 
-Wine on macOS often produces audio crackling. The installer configures `SDL_AUDIODRIVER=directsound` via a LaunchAgent which fixes this automatically.
+The current [official launcher](https://patch.uooutlands.com/download) inspected on this date is a self-contained .NET 9 application. The recipe installs native .NET Framework 4.8 for legacy Windows components and validates it by registry and executable probes. The old `dotnet481` recipe could report success after a no-op Windows servicing operation while leaving only .NET 4.0 installed; it is no longer used.
 
-Additional tips:
-- Connect headphones/AirPods **before** launching the game (Wine doesn't hot-switch audio)
-- Wired headphones work better than Bluetooth for Wine audio
-- If crackling persists, open **Audio MIDI Setup.app** and change sample rate to **48000 Hz**
+These are source/version checks, not a claim that all combinations have passed gameplay testing.
 
-## Troubleshooting
+## Migration from the shell installer
 
-Something not working? Start here:
+The native installer replaces `install.sh` and the old install/repair/launch diagnostic scripts. Older instructions that pipe remote scripts into a shell, copy arbitrary Wine libraries, kill every Wine process, or erase shared Sikarugir data should not be used.
 
-1. **Run the diagnostic script** — it auto-fixes most issues:
-   ```bash
-   curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/helpers/fix-and-diagnose.sh' -H 'Accept: application/vnd.github.raw' | bash
-   ```
-2. If that doesn't help, find your problem below.
-3. If nothing helps, try [Manual Installation via Sikarugir Creator](#manual-installation-via-sikarugir-creator).
+The independent, advanced [`helpers/sync-config.sh`](helpers/sync-config.sh) SSH profile-sync utility is retained for existing users. It is not called or bundled by the native installer and is outside the new GUI's tested installation path. Review its backup and SSH options before use.
 
----
+## Licence and attribution
 
-### Installer does nothing / fails silently at step 1
-**Symptoms:** Script shows banner and `✓ Apple Silicon detected`, then exits with no error.
-**Cause:** BSD `sed` crashes on non-English locales like Czech or German (`sed: RE error: illegal byte sequence`). This kills the logging pipeline and the entire script dies silently.
-**Fix:** Fixed in v0.3.0. Re-download the latest install.sh. If stuck on old version:
-```bash
-curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/install.sh' \
-  -H 'Accept: application/vnd.github.raw' -o install.sh && chmod +x install.sh && ./install.sh
-```
+Installer source: [MIT](LICENSE). Wine, Sikarugir, Winetricks, Microsoft runtimes and Outlands have their own licences. Runtime components are downloaded on demand, not redistributed in the installer ZIP. D3DMetal is subject to Apple's licence; this is an unofficial, non-commercial community helper, not an official Outlands or Apple product.
 
-### `brew: command not found`
-**Symptoms:** Script fails at step 3 (Checking Homebrew).
-**Cause:** Homebrew installed but not added to PATH. Common on fresh installs — Homebrew prints instructions after install but many people miss them.
-**Fix:**
-```bash
-echo >> ~/.zprofile
-echo 'eval "$(/opt/homebrew/bin/brew shellenv zsh)"' >> ~/.zprofile
-eval "$(/opt/homebrew/bin/brew shellenv zsh)"
-```
-Verify: `brew --version` should print the version. Then re-run install.sh.
+Upstream monitoring runs daily and assigns new component PRs to the repository owner. It dispatches macOS build and Wine checks explicitly. Pushing a `vX.Y.Z` tag starts the protected signing workflow and creates a draft release; publication follows manual acceptance. See [release setup](docs/RELEASING.md).
 
-### `Error: Calling the --[no-]quarantine switch is disabled!`
-**Symptoms:** Script fails at step 4 (Installing Wine Stable).
-**Cause:** Homebrew 5.x completely removed the `--no-quarantine` flag. Older install.sh versions used it.
-**Fix:** Fixed in v0.3.0. Re-download the latest install.sh.
+## Game management
 
-### Wine Stable "cannot be opened" / macOS Gatekeeper blocks it
-**Symptoms:** Double-clicking Wine Stable shows "Apple cannot verify" dialog with "Move to Trash" button.
-**Cause:** macOS quarantine attribute on apps downloaded from the internet. Homebrew 5.x no longer removes it automatically.
-**Fix:**
-```bash
-xattr -cr "/Applications/Wine Stable.app"
-xattr -cr "/Applications/Sikarugir Creator.app"
-```
+The app has **Game**, **Backups**, **Diagnostics** and **Settings** sections, with an English interface. Upstream tools and detailed diagnostic messages can remain English.
 
-### `Library not loaded: @rpath/libinotify.0.dylib` (Wine crashes)
-**Symptoms:** Wine smoke test fails. Launching outlands.app does nothing. Debug shows `dyld: Library not loaded`.
-**Cause:** The Sikarugir Wine engine bundle doesn't include all shared libraries (`.dylib` files) that `wineserver` needs. Wine Stable.app has them but they need to be copied into the wrapper.
-**Fix:** Fixed in v0.3.0. Script auto-copies missing dylibs. Manual fix:
-```bash
-cp "/Applications/Wine Stable.app/Contents/Resources/wine/lib/"*.dylib \
-   ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/wine/lib/
-```
-Verify: run the diagnostic script — `[7] Missing Libraries` should show all present.
+**Close Outlands processes** asks you to save changes, sends termination to processes belonging to this wrapper, then forcibly stops unresponsive ones after three seconds. It uses kernel executable paths, user IDs and process start times; a Wine process explicitly using a different prefix is excluded. No global `killall` or `pkill` is used. The process list is available in Diagnostics. Processes launched through a separate external Wine engine are outside this manager's scope.
 
-### Outlands launcher exits immediately with code 255
-**Symptoms:** You run the game, Wine loads (you may see MoltenVK messages), then it exits with code 255. No window appears.
-**Cause (most common):** .NET Framework DLLs are Wine Mono stubs (~752KB) instead of real Windows .NET DLLs (~5MB). Winetricks sometimes installs Mono stubs instead of real .NET Framework. Outlands.exe is a .NET WPF application that requires real .NET.
-**How to check:**
-```bash
-ls -la ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix/drive_c/windows/Microsoft.NET/Framework64/v4.0.30319/mscorlib.dll
-```
-If the file is ~752KB → it's a Mono stub. If ~5MB → it's real .NET.
-**Fix:**
-1. Install .NET manually via Sikarugir Creator (see [Manual Installation](#manual-installation-via-sikarugir-creator)) — this installs real .NET Framework
-2. Copy .NET DLLs from the working wrapper into the broken one:
-   ```bash
-   # If you have a working uo.app from Sikarugir Creator:
-   rm -rf ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix/drive_c/windows/Microsoft.NET
-   cp -R ~/Applications/Sikarugir/uo.app/Contents/SharedSupport/prefix/drive_c/windows/Microsoft.NET \
-     ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix/drive_c/windows/Microsoft.NET
-   rm -rf ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix/drive_c/windows/assembly
-   cp -R ~/Applications/Sikarugir/uo.app/Contents/SharedSupport/prefix/drive_c/windows/assembly \
-     ~/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix/drive_c/windows/assembly
-   ```
+Finder shortcuts open **Contents**, the game folder, Razor settings, scripts and profiles directly. The current Outlands layout stores Razor data in `ClassicUO/Data/Plugins/Assistant`; the old `Razor` directory is supported as a fallback. Missing folders produce a message instead of being silently created. The installation-backup shortcut opens the parent of the game application; portable archives remain in the location you selected.
 
-**Cause (less common):** Wine prefix is set to Windows XP. Outlands launcher requires Windows 10.
-**Fix:**
-```bash
-export WINEPREFIX="$HOME/Applications/Sikarugir/outlands.app/Contents/SharedSupport/prefix"
-"$HOME/Applications/Sikarugir/outlands.app/Contents/SharedSupport/wine/bin/wine" winecfg
-```
-In the winecfg window, set Windows version to **Windows 10** at the bottom dropdown.
+The backup catalog records known archive locations, dates, sizes, personal notes and the last successful verification. Add older archives using **Add / verify backup**. Verification dates describe a past check; disconnected or changed archives must be checked again. A reminder appears when the catalog has no backup from the last seven days. There is no background scheduler or automatic deletion. Diagnostics lists external game/user symlinks whose target data is excluded from archives.
 
-### Game won't re-launch / hangs on start / nothing happens when clicking outlands.app
-**Symptoms:** Game worked before but now nothing happens when launching.
-**Cause:** Wine processes from the previous session are still running. Wine on macOS doesn't always clean up `wineserver` and child processes.
-**Fix:** Kill all Wine processes and try again:
-```bash
-pkill -f wineserver; pkill -f wine; pkill -f Outlands
-```
-Then relaunch: `open ~/Applications/Sikarugir/outlands.app`
+During installation, backup and restore the app requests that macOS prevent automatic idle sleep; closing a laptop lid, manual sleep or power loss can still interrupt an operation. A stopped or stale rebuild can be preserved and restarted from the UI. Rebuilds compare the original prefix before/after work and include that fingerprint in their retry marker, preventing a stale staged copy from silently replacing newer profiles.
 
-### Script downloads old/cached version of install.sh
-**Symptoms:** After a fix is pushed, running the script still shows the old bug.
-**Cause:** `raw.githubusercontent.com` CDN caches aggressively (up to 5 minutes).
-**Fix:** Use the GitHub API URL (no cache):
-```bash
-curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/install.sh' \
-  -H 'Accept: application/vnd.github.raw' -o install.sh && chmod +x install.sh && ./install.sh
-```
+The app icon and sidebar use Game Icons SVG artwork from [React Icons](https://react-icons.github.io/react-icons/) (`react-icons/gi` 5.7.0), with a shared teal palette. Action buttons use standard macOS controls. These are bundled vector assets rendered in SwiftUI; the app requires no React or Node runtime. Artwork is licensed under CC BY 3.0; [individual credits](Sources/OutlandsInstaller/Resources/GameIcons/CREDITS.txt) and the React Icons licence ship with the app. The pinned import manifest is in `tools/game-icons.json`; `tools/import_game_icons.py` verifies the upstream package integrity before regenerating assets. Packaging checks that all bundled artwork loads successfully.
 
-### Notepad works but Outlands.exe doesn't (Wine GUI is OK)
-**Symptoms:** `wine notepad.exe` shows a window, `wine winecfg` shows a window, but Outlands.exe exits silently.
-**Cause:** This is the .NET/WPF issue described above. Notepad and winecfg don't need .NET. Outlands.exe does.
-**Fix:** See "Outlands launcher exits immediately with code 255" above.
+Diagnostics scans run off the UI thread, with progress and cancellation, so inspecting a large game folder does not block navigation. A process count is shown only after it has been checked.
 
-### First launch: game window opens but no game files download
-**Symptoms:** Outlands launcher starts but game directory only has `Outlands.exe` (1 file, ~165MB). ClassicUO and game assets are missing.
-**Cause:** Outlands.exe is the launcher/patcher. It needs to download ~3-4GB of game files on first run. This requires a working internet connection through Wine.
-**Fix:** Keep the launcher open and let it download. It may take 10-30 minutes depending on your connection. Don't close the window until it's done.
+Diagnostics identifies Wine Mono separately from Microsoft .NET Framework; a Mono informational result does not establish that an existing game is broken. Legacy backup activation checks the recovered application structure without requiring the fresh installer's Framework recipe. New installations still require executable runtime probes. Reports use the most recent explicit diagnostic snapshot, avoiding a filesystem scan when opening the report sheet. See the [follow-up findings](docs/review/FINDINGS.md) for the current evidence and remaining release blockers.
 
-### Complete fresh start (nuclear option)
-If nothing works, remove everything and start over:
-```bash
-# Remove wrapper and Sikarugir data
-rm -rf ~/Applications/Sikarugir/outlands.app
-rm -rf ~/Library/Application\ Support/Sikarugir
 
-# Kill any stuck processes
-pkill -f wineserver; pkill -f wine; pkill -f Outlands
+### Settings recovery and keyboard navigation
 
-# Re-install
-cd ~ && curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/install.sh' \
-  -H 'Accept: application/vnd.github.raw' -o install.sh && chmod +x install.sh && ./install.sh
-```
-This preserves Homebrew, Wine Stable, and Sikarugir Creator (no need to re-download those).
+An interrupted settings swap leaves a bounded local recovery journal next to ClassicUO. The Backups page detects it and offers **Recover…**: it rolls back an interrupted first rename or retains the Undo copy after a completed swap. Ambiguous or redirected paths are preserved for inspection. Never delete an original recovery directory until you have checked the game and profiles. Reboot/power-loss behaviour still needs hardware acceptance.
 
----
-
-## Tips
-
-- **Re-running install.sh is safe** — the script is idempotent, it skips completed steps and fixes missing components
-- **Kill stuck Wine processes before re-launching:**
-  ```bash
-  pkill -f wineserver; pkill -f wine; pkill -f Outlands
-  ```
-- **Connect headphones/AirPods BEFORE launching** — Wine doesn't hot-switch audio devices
-- Switch between Razor and Game windows: **Cmd + \`** (backtick)
-- Reconfigure wrapper: Right-click `outlands.app` → Show Package Contents → `Configure.app`
-- Razor profiles location: `drive_c/users/crossover/Application Data/Razor/`
-- Game logs: `drive_c/Program Files (x86)/Ultima Online Outlands/Logs/`
-- Debug launch from Terminal:
-  ```bash
-  ~/Applications/Sikarugir/outlands.app/Contents/MacOS/Sikarugir 2>&1 | tee ~/Desktop/debug.log
-  ```
-- Validate Homebrew health: `brew doctor`
-- Check what's installed: `brew list --cask`
-- **First game launch downloads ~3-4GB** — be patient, keep the launcher window open
-
-## Helper Scripts
-
-| Script | Description |
-|--------|-------------|
-| `helpers/fix-and-diagnose.sh` | Auto-fix known issues + validate 13 checkpoints (Wine, .NET, engine, quarantine, game files, etc.) |
-| `helpers/launch-direct.sh` | Launch Outlands directly via Wine (bypass Sikarugir wrapper for debugging) |
-| `helpers/diagnose-wrapper.sh` | Read-only diagnostic — validates all components without making changes |
-| `helpers/sync-config.sh` | Backup, restore, and sync ClassicUO profiles/scripts between two Macs via SSH |
-
-Run any helper script directly:
-```bash
-curl -fsSL 'https://api.github.com/repos/Srbino/uo-outlands-mac/contents/helpers/<script>.sh' \
-  -H 'Accept: application/vnd.github.raw' | bash
-```
-
-## Changelog
-
-### v0.4.0 (2026-03-31)
-- **Fix:** .NET validation now checks DLL file sizes to detect Wine Mono stubs vs real .NET Framework
-- **Fix:** Windows version set to Windows 10 (was XP — caused Outlands launcher crash)
-- **Add:** Post-install .NET validation with per-version report
-- **Add:** Windows version verification after winecfg
-- **Add:** `fix-and-diagnose.sh` — comprehensive auto-fix + 13-point diagnostic
-- **Add:** `launch-direct.sh` — direct Wine launch for debugging
-
-### v0.3.0 (2026-03-31)
-- **Fix:** `sed` crash on non-English locales (Czech, German, etc.) — `LC_ALL=C` for ANSI stripping
-- **Fix:** Homebrew 5.x removed `--no-quarantine` — now clears quarantine via `xattr -cr`
-- **Fix:** Missing `libinotify.0.dylib` — auto-copies shared libs from Wine Stable.app into engine
-- **Fix:** Wine binary detection (`wine` not `wine64` in Sikarugir engine)
-- **Add:** Defensive pre-flight validation (macOS version, disk space with locale-safe parsing)
-- **Add:** Wine smoke test after wrapper creation
-- **Add:** Quarantine clearing for Wine Stable.app and Sikarugir Creator.app
-- **Add:** GitHub API URL for downloads (bypasses raw.githubusercontent.com CDN cache)
-- **Add:** Idempotent re-run: symlinks, quarantine, dylib copy always execute
-- **Add:** `diagnose-wrapper.sh` — wrapper diagnostic script
-
-### v0.2.0 (2026-03-15)
-- **Add:** Comprehensive debug logging with separate trace file
-- **Add:** Config sync script for multi-Mac setups
-
-### v0.1.0 (2026-03-01)
-- Initial release
-- Automated Wine + Sikarugir installation
-- Audio fix (SDL_AUDIODRIVER=directsound via LaunchAgent)
-
-## Tested On
-
-- M3 MacBook Air, macOS Tahoe (26.3.1)
-- M4 Pro MacBook Pro, macOS Tahoe (26.x)
-- M4 Mac Mini, macOS Tahoe (26.x)
-- Engine: WS12WineSikarugir 10.0 (revision 4)
-- Template: 1.0.10
-- Homebrew: 5.1.3
-
-## License
-
-MIT
+Use Command–1 through Command–4 to switch pages, Command–B to preview a backup, Escape to cancel sheets, and Command–Return to apply reviewed settings. Custom actions and sidebar controls include focus outlines; full button Tab navigation follows your macOS keyboard navigation settings. Increase Contrast strengthens control/card outlines. VoiceOver and comprehensive keyboard/oldest-macOS acceptance are still pending.

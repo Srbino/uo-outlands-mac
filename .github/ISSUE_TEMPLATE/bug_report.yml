@@ -1,0 +1,49 @@
+name: Installation or launch problem
+description: Report a reproducible problem with the Mac installer.
+title: '[Installer] '
+body:
+  - type: markdown
+    attributes:
+      value: 'The app can prepare this report under **Report a problem**. Issues are public; remove names, passwords, account details and private paths from attachments.'
+  - type: input
+    id: installer
+    attributes:
+      label: Installer version
+      placeholder: 0.9.0
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Mac chip and macOS version
+      placeholder: M4, macOS 26.x
+    validations:
+      required: true
+  - type: dropdown
+    id: step
+    attributes:
+      label: Where did it fail?
+      options:
+        - Opening the installer
+        - System checks or Rosetta
+        - Downloading components
+        - Preparing the wrapper
+        - Installing .NET
+        - Downloading or opening the Outlands launcher
+        - Downloading game files or gameplay
+        - Rebuilding an existing installation
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: What happened and how can we reproduce it?
+      description: Include the error message, what you clicked, and what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Reviewed diagnostics
+      description: Paste the app's report or attach an exported log after checking it for private information.

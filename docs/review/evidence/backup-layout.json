@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-04",
+  "reproduced": "Grid intrinsic width clipped sidebar and backup actions after an available record appeared",
+  "verified_widths_points": [
+    940,
+    960,
+    1263
+  ],
+  "small_layout": "stacked records",
+  "wide_layout": "table",
+  "records": "available settings archive and missing full archive",
+  "swift_tests": {
+    "total": 55,
+    "skipped": 6,
+    "failures": 0
+  },
+  "production_files_modified": false,
+  "backup_or_restore_performed": false,
+  "processes_stopped": false,
+  "voiceover_verified": false,
+  "older_macos_verified": false
+}

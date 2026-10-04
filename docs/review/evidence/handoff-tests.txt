@@ -1,0 +1,107 @@
+Local follow-up run, 2026-10-03. Selected evidence; paths redacted.
+
+Build complete! (2.91s)
+Test Suite 'All tests' started at 2026-10-03 23:39:18.681.
+Test Suite 'OutlandsInstallerPackageTests.xctest' started at 2026-10-03 23:39:18.682.
+Test Suite 'BackupTests' started at 2026-10-03 23:39:18.682.
+Test Case '-[OutlandsCoreTests.BackupTests testActivationPreservesCurrentInstallation]' started.
+Test Case '-[OutlandsCoreTests.BackupTests testActivationPreservesCurrentInstallation]' passed (0.339 seconds).
+Test Case '-[OutlandsCoreTests.BackupTests testRefusesRecursiveDestinationAndCancelledBackup]' started.
+Test Case '-[OutlandsCoreTests.BackupTests testRefusesRecursiveDestinationAndCancelledBackup]' passed (0.015 seconds).
+Test Case '-[OutlandsCoreTests.BackupTests testWholeWrapperRoundTripAndCorruption]' started.
+Test Case '-[OutlandsCoreTests.BackupTests testWholeWrapperRoundTripAndCorruption]' passed (1.107 seconds).
+Test Suite 'BackupTests' passed at 2026-10-03 23:39:20.142.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 1.460 (1.461) seconds
+Test Suite 'CoreTests' started at 2026-10-03 23:39:20.143.
+Test Case '-[OutlandsCoreTests.CoreTests testArchiveTraversalIsRejected]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testArchiveTraversalIsRejected]' passed (0.001 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testCancellationStopsOwnedCommand]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testCancellationStopsOwnedCommand]' passed (0.306 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testChecksumRejectsTruncatedOrCorruptDownloads]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testChecksumRejectsTruncatedOrCorruptDownloads]' passed (0.006 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testCommandArgumentsAreNotShellCode]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testCommandArgumentsAreNotShellCode]' passed (0.210 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testCommandFailureAndTimeout]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testCommandFailureAndTimeout]' passed (0.930 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testDiagnosticsDoNotModifyIncompleteWrapper]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testDiagnosticsDoNotModifyIncompleteWrapper]' passed (0.002 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testFailedPromotionRollsBackOriginal]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testFailedPromotionRollsBackOriginal]' passed (0.002 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testHTMLAndFakeMZAreNotExecutables]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testHTMLAndFakeMZAreNotExecutables]' passed (0.001 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testInstallLockPreventsConcurrentWritesAndReleases]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testInstallLockPreventsConcurrentWritesAndReleases]' passed (0.001 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testIssueURLBoundsEncodedUnicode]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testIssueURLBoundsEncodedUnicode]' passed (0.009 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testPrivateCommandOutputIsNotLogged]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testPrivateCommandOutputIsNotLogged]' passed (0.208 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testPromotionPreservesExistingProfiles]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testPromotionPreservesExistingProfiles]' passed (0.003 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testRecipeUsesPinnedHTTPSComponents]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testRecipeUsesPinnedHTTPSComponents]' passed (0.002 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testRedactionAndIssueEncoding]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testRedactionAndIssueEncoding]' passed (0.001 seconds).
+Test Case '-[OutlandsCoreTests.CoreTests testSemanticVersionComparison]' started.
+Test Case '-[OutlandsCoreTests.CoreTests testSemanticVersionComparison]' passed (0.001 seconds).
+Test Suite 'CoreTests' passed at 2026-10-03 23:39:21.828.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 1.683 (1.686) seconds
+Test Suite 'FrameworkTests' started at 2026-10-03 23:39:21.828.
+Test Case '-[OutlandsCoreTests.FrameworkTests testMonoAndUnknownAssembliesAreNotCertifiedBySize]' started.
+Test Case '-[OutlandsCoreTests.FrameworkTests testMonoAndUnknownAssembliesAreNotCertifiedBySize]' passed (0.016 seconds).
+Test Case '-[OutlandsCoreTests.FrameworkTests testReadOnlyRuntimeInspectionWhenRequested]' started.
+Test Case '-[OutlandsCoreTests.FrameworkTests testReadOnlyRuntimeInspectionWhenRequested]' skipped (0.001 seconds).
+Test Case '-[OutlandsCoreTests.FrameworkTests testRegistryRequiresInstalledMatchingArchitectureAndExactSection]' started.
+Test Case '-[OutlandsCoreTests.FrameworkTests testRegistryRequiresInstalledMatchingArchitectureAndExactSection]' passed (0.000 seconds).
+Test Suite 'FrameworkTests' passed at 2026-10-03 23:39:21.846.
+	 Executed 3 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.017 (0.017) seconds
+Test Suite 'FullInstallTests' started at 2026-10-03 23:39:21.846.
+Test Case '-[OutlandsCoreTests.FullInstallTests testCompleteInstallationPipeline]' started.
+Test Case '-[OutlandsCoreTests.FullInstallTests testCompleteInstallationPipeline]' skipped (0.000 seconds).
+Test Suite 'FullInstallTests' passed at 2026-10-03 23:39:21.846.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'IntegrationTests' started at 2026-10-03 23:39:21.846.
+Test Case '-[OutlandsCoreTests.IntegrationTests testDownloadedRuntime]' started.
+Test Case '-[OutlandsCoreTests.IntegrationTests testDownloadedRuntime]' skipped (0.000 seconds).
+Test Suite 'IntegrationTests' passed at 2026-10-03 23:39:21.846.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'LargeBackupTests' started at 2026-10-03 23:39:21.847.
+Test Case '-[OutlandsCoreTests.LargeBackupTests testRestoreRealArchiveSeparately]' started.
+Test Case '-[OutlandsCoreTests.LargeBackupTests testRestoreRealArchiveSeparately]' skipped (0.000 seconds).
+Test Suite 'LargeBackupTests' passed at 2026-10-03 23:39:21.847.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'LauncherTests' started at 2026-10-03 23:39:21.847.
+Test Case '-[OutlandsCoreTests.LauncherTests testRegistrationOnDisposableWrapperWhenRequested]' started.
+Test Case '-[OutlandsCoreTests.LauncherTests testRegistrationOnDisposableWrapperWhenRequested]' skipped (0.000 seconds).
+Test Suite 'LauncherTests' passed at 2026-10-03 23:39:21.847.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'ProcessTests' started at 2026-10-03 23:39:21.847.
+Test Case '-[OutlandsCoreTests.ProcessTests testBorrowedEngineWithAnotherPrefixIsNotOwned]' started.
+Test Case '-[OutlandsCoreTests.ProcessTests testBorrowedEngineWithAnotherPrefixIsNotOwned]' passed (0.131 seconds).
+Test Case '-[OutlandsCoreTests.ProcessTests testOnlySelectedWrapperProcessesAreStopped]' started.
+Test Case '-[OutlandsCoreTests.ProcessTests testOnlySelectedWrapperProcessesAreStopped]' passed (0.237 seconds).
+Test Case '-[OutlandsCoreTests.ProcessTests testSnapshotDetectsProfileChangesAndIgnoresExternalTargetContent]' started.
+Test Case '-[OutlandsCoreTests.ProcessTests testSnapshotDetectsProfileChangesAndIgnoresExternalTargetContent]' passed (0.001 seconds).
+Test Suite 'ProcessTests' passed at 2026-10-03 23:39:22.216.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.369 (0.369) seconds
+Test Suite 'UpdateTests' started at 2026-10-03 23:39:22.216.
+Test Case '-[OutlandsCoreTests.UpdateTests testInvalidJSONFailsInsteadOfReportingUpToDate]' started.
+Test Case '-[OutlandsCoreTests.UpdateTests testInvalidJSONFailsInsteadOfReportingUpToDate]' passed (0.006 seconds).
+Test Case '-[OutlandsCoreTests.UpdateTests testNoPublicReleaseIsNotAnError]' started.
+Test Case '-[OutlandsCoreTests.UpdateTests testNoPublicReleaseIsNotAnError]' passed (0.000 seconds).
+Test Case '-[OutlandsCoreTests.UpdateTests testRateLimitHasActionableMessage]' started.
+Test Case '-[OutlandsCoreTests.UpdateTests testRateLimitHasActionableMessage]' passed (0.000 seconds).
+Test Case '-[OutlandsCoreTests.UpdateTests testRejectsUntrustedReleaseURL]' started.
+Test Case '-[OutlandsCoreTests.UpdateTests testRejectsUntrustedReleaseURL]' passed (0.000 seconds).
+Test Case '-[OutlandsCoreTests.UpdateTests testValidStableRelease]' started.
+Test Case '-[OutlandsCoreTests.UpdateTests testValidStableRelease]' passed (0.000 seconds).
+Test Suite 'UpdateTests' passed at 2026-10-03 23:39:22.224.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.008 (0.008) seconds
+Test Suite 'WineProcessTests' started at 2026-10-03 23:39:22.224.
+Test Case '-[OutlandsCoreTests.WineProcessTests testStopOnlyDisposableWineWrapper]' started.
+Test Case '-[OutlandsCoreTests.WineProcessTests testStopOnlyDisposableWineWrapper]' skipped (0.000 seconds).
+Test Suite 'WineProcessTests' passed at 2026-10-03 23:39:22.224.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'OutlandsInstallerPackageTests.xctest' passed at 2026-10-03 23:39:22.225.
+	 Executed 34 tests, with 6 tests skipped and 0 failures (0 unexpected) in 3.538 (3.543) seconds
+Test Suite 'All tests' passed at 2026-10-03 23:39:22.225.
+	 Executed 34 tests, with 6 tests skipped and 0 failures (0 unexpected) in 3.538 (3.544) seconds

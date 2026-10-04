@@ -1,0 +1,56 @@
+{
+  "package": "react-icons/gi",
+  "version": "5.7.0",
+  "license": "CC-BY-3.0",
+  "icons": [
+    "castle",
+    "locked-chest",
+    "spyglass",
+    "cog",
+    "sword-in-stone"
+  ],
+  "assets": [
+    {
+      "icon": "castle",
+      "authors": [
+        "delapouite"
+      ],
+      "sha256": "5f2c688878801331eee5c7054261f697b01ce2c204ef693125ea979f1d3a9ff9",
+      "export": "GiCastle"
+    },
+    {
+      "icon": "locked-chest",
+      "authors": [
+        "lorc"
+      ],
+      "sha256": "497c284d14f56cd1faf8dfb7d90cfd4e2a27a439a815b89b5fe0b20d6d6e6dc5",
+      "export": "GiLockedChest"
+    },
+    {
+      "icon": "spyglass",
+      "authors": [
+        "lorc"
+      ],
+      "sha256": "4b05940b2ee5d5041330776cf330fbdd760731f05c6739712fc4ea61bfdfbfec",
+      "export": "GiSpyglass"
+    },
+    {
+      "icon": "cog",
+      "authors": [
+        "lorc"
+      ],
+      "sha256": "06812980a7c81c9f3f512b64f807a7164e4152bf55d6f0f27457afe5a8de53de",
+      "export": "GiCog"
+    },
+    {
+      "icon": "sword-in-stone",
+      "authors": [
+        "lorc"
+      ],
+      "sha256": "caf10b698ecfd7fac2d6fb8ec30ddb832794db20eeb72a18285cdc3b0476f4fb",
+      "export": "GiSwordInStone"
+    }
+  ],
+  "url": "https://registry.npmjs.org/react-icons/-/react-icons-5.7.0.tgz",
+  "integrity": "sha512-LBLy340Rzqy6+/yVhZKT3B/QpP1BZaesGqasf09HPOBzRarcDIFH0WwXlXQfE7q7ipxK4MSiC5DIBWURCny6fw=="
+}

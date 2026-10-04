@@ -1,0 +1,17 @@
+Historical local run, 2026-10-03. Selected result lines; paths redacted.
+This is evidence of that run, not a replay against future revisions.
+
+Build complete! (2.05s)
+Test Suite 'Selected tests' started at 2026-10-03 22:12:08.579.
+Test Suite 'OutlandsInstallerPackageTests.xctest' started at 2026-10-03 22:12:08.580.
+Test Suite 'FullInstallTests' started at 2026-10-03 22:12:08.580.
+Test Case '-[OutlandsCoreTests.FullInstallTests testCompleteInstallationPipeline]' started.
+Test Case '-[OutlandsCoreTests.FullInstallTests testCompleteInstallationPipeline]' passed (551.363 seconds).
+Test Suite 'FullInstallTests' passed at 2026-10-03 22:21:19.943.
+	 Executed 1 test, with 0 failures (0 unexpected) in 551.363 (551.363) seconds
+Test Suite 'OutlandsInstallerPackageTests.xctest' passed at 2026-10-03 22:21:19.943.
+	 Executed 1 test, with 0 failures (0 unexpected) in 551.363 (551.363) seconds
+Test Suite 'Selected tests' passed at 2026-10-03 22:21:19.943.
+	 Executed 1 test, with 0 failures (0 unexpected) in 551.363 (551.364) seconds
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0

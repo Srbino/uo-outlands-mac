@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-04",
+  "status": "release blocked; large comparison interrupted",
+  "normal_tests": {
+    "total": 56,
+    "skipped": 7,
+    "passed": 49,
+    "failures": 0
+  },
+  "additional_executed_opt_in": [
+    "Wine/new-prefix smoke test",
+    "x86/x64 .NET WPF probes in disposable QA prefix",
+    "QA launcher registry registration",
+    "QA process shutdown with production identities unchanged",
+    "Production read-only Mono identification"
+  ],
+  "full_qa_archive": {
+    "bytes": 6972423983,
+    "created_and_verified": true,
+    "separate_restore_completed": true,
+    "all_files_comparison_completed": false,
+    "location": "external SSD .qa/validation-2026-10-04"
+  },
+  "incident": {
+    "jetsam_largest_process": "outlands-full-qa-validation",
+    "process_accounted_bytes": 11484463104,
+    "startup_free_before_restart_mib": 208,
+    "swap_used_before_restart_mib": 15616,
+    "panic": "WindowServer watchdog timeout, compressor segments exhausted, low swap",
+    "helper_running_after_restart": false,
+    "mechanism": "suspected accumulation of Foundation autoreleased temporary data; large-load fix unverified"
+  },
+  "protection": [
+    "No production restore/rebuild/apply",
+    "No production process signaled",
+    "No commit/push/publication",
+    "No issue submitted",
+    "All future local fixture backups/restore data use explicit external QA root"
+  ],
+  "remaining": [
+    "Fresh GUI install/login/gameplay",
+    "Large-load memory regression on disposable machine",
+    "Complete keyboard/VoiceOver",
+    "Other supported macOS versions",
+    "Hosted CI/notarization/clean-machine Gatekeeper",
+    "Hardware interruption scenarios"
+  ]
+}

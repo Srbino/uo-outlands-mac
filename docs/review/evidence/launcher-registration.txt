@@ -1,0 +1,14 @@
+Local follow-up run, 2026-10-03. Selected evidence; paths redacted.
+
+Build complete! (2.95s)
+Test Suite 'Selected tests' started at 2026-10-03 23:38:15.162.
+Test Suite 'OutlandsInstallerPackageTests.xctest' started at 2026-10-03 23:38:15.163.
+Test Suite 'LauncherTests' started at 2026-10-03 23:38:15.163.
+Test Case '-[OutlandsCoreTests.LauncherTests testRegistrationOnDisposableWrapperWhenRequested]' started.
+Test Case '-[OutlandsCoreTests.LauncherTests testRegistrationOnDisposableWrapperWhenRequested]' passed (8.076 seconds).
+Test Suite 'LauncherTests' passed at 2026-10-03 23:38:23.239.
+	 Executed 1 test, with 0 failures (0 unexpected) in 8.076 (8.076) seconds
+Test Suite 'OutlandsInstallerPackageTests.xctest' passed at 2026-10-03 23:38:23.239.
+	 Executed 1 test, with 0 failures (0 unexpected) in 8.076 (8.076) seconds
+Test Suite 'Selected tests' passed at 2026-10-03 23:38:23.239.
+	 Executed 1 test, with 0 failures (0 unexpected) in 8.076 (8.077) seconds

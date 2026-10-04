@@ -1,3 +1,11 @@
 .DS_Store
 ._*
 *.log
+.build/
+dist/
+.swiftpm/
+__pycache__/
+*.pyc
+.qa/
+
+.build-management/

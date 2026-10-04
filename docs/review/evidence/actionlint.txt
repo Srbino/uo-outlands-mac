@@ -1,0 +1,4 @@
+Command: actionlint
+Date: 2026-10-03
+Exit status: 0
+Output: no findings. Static workflow validation only.

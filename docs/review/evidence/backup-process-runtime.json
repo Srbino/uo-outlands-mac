@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-04",
+  "swift_tests": {
+    "total": 55,
+    "skipped": 6,
+    "failures": 0,
+    "warnings_as_errors": true
+  },
+  "python_tests": 4,
+  "read_only_runtime_test": "passed",
+  "production_process_observation": {
+    "applications": 0,
+    "recognized_background_services": 47,
+    "processes_stopped": 0
+  },
+  "real_settings_backup": {
+    "compressed_bytes": 15581230,
+    "source_bytes": 32686615,
+    "verification": "passed",
+    "separate_qa_restore": "passed",
+    "source_classicu_metadata_unchanged": true,
+    "production_restore_or_apply": false,
+    "private_archive_in_review": false
+  },
+  "runtime": {
+    "framework_assemblies": "Wine Mono",
+    "assembly_bytes": 752128,
+    "sha256": "57dad5c007d52244b7681eacbbf83f9cf03824e83b86884e84f3461bf40cccdf",
+    "clr_in_inspected_framework_directories": false,
+    "microsoft_framework_verified": false,
+    "wine_executed": false
+  },
+  "gui": {
+    "diagnostics": "5 verified, 2 informational, 0 need attention",
+    "settings_preview_with_services": "passed, cancelled before destination selection"
+  },
+  "unverified": [
+    "Executable production runtime compatibility",
+    "Launcher/login/gameplay acceptance",
+    "Notarization and clean-machine Gatekeeper acceptance"
+  ]
+}

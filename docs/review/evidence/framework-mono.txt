@@ -1,0 +1,16 @@
+Local follow-up run, 2026-10-03. Selected evidence; paths redacted.
+
+Build complete! (2.39s)
+Test Suite 'Selected tests' started at 2026-10-03 23:38:10.387.
+Test Suite 'OutlandsInstallerPackageTests.xctest' started at 2026-10-03 23:38:10.387.
+Test Suite 'FrameworkTests' started at 2026-10-03 23:38:10.387.
+Test Case '-[OutlandsCoreTests.FrameworkTests testReadOnlyRuntimeInspectionWhenRequested]' started.
+Test Case '-[OutlandsCoreTests.FrameworkTests testReadOnlyRuntimeInspectionWhenRequested]' passed (0.005 seconds).
+Test Suite 'FrameworkTests' passed at 2026-10-03 23:38:10.392.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
+Test Suite 'OutlandsInstallerPackageTests.xctest' passed at 2026-10-03 23:38:10.392.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
+Test Suite 'Selected tests' passed at 2026-10-03 23:38:10.392.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.005 (0.006) seconds
+.NET Framework: Wine Mono assembly detected. Microsoft .NET Framework is not verified; this does not mean your existing game is broken. The launcher has its own modern .NET runtime.
+.NET Framework64: Wine Mono assembly detected. Microsoft .NET Framework is not verified; this does not mean your existing game is broken. The launcher has its own modern .NET runtime.

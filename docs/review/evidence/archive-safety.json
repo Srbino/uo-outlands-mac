@@ -1,0 +1,20 @@
+{
+  "scope": "Isolated direct system bsdtar extraction test on local macOS; not full adversarial Backups coverage.",
+  "results": [
+    {
+      "case": "symlink",
+      "exit": 1,
+      "outside_sentinel": "unchanged"
+    },
+    {
+      "case": "hardlink",
+      "exit": 1,
+      "outside_sentinel": "unchanged"
+    },
+    {
+      "case": "traversal",
+      "exit": 1,
+      "outside_sentinel": "unchanged"
+    }
+  ]
+}

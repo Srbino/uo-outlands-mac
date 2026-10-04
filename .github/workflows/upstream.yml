@@ -1,0 +1,53 @@
+name: Review upstream component updates
+on:
+  schedule:
+    - cron: '41 6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+concurrency:
+  group: upstream-component-update
+  cancel-in-progress: false
+jobs:
+  review:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check official upstream metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/check_upstream.py --write
+      - name: Validate candidate recipe
+        run: swift test -Xswiftc -warnings-as-errors
+      - name: Open or refresh a review PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- Sources/OutlandsCore/recipe.json; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git ls-remote --exit-code --heads origin automation/upstream-components >/dev/null 2>&1; then
+            git fetch origin automation/upstream-components:refs/remotes/origin/automation/upstream-components
+            # Skip an already proposed recipe, even when the metadata date changed.
+            git show origin/automation/upstream-components:Sources/OutlandsCore/recipe.json > "$RUNNER_TEMP/proposed-recipe.json"
+            if python3 - "$RUNNER_TEMP/proposed-recipe.json" <<'PYTHON'
+          import json, sys
+          old = json.load(open(sys.argv[1]))
+          new = json.load(open('Sources/OutlandsCore/recipe.json'))
+          sys.exit(0 if all(old[k] == new[k] for k in ('engine', 'template', 'winetricks')) else 1)
+          PYTHON
+            then exit 0; fi
+          fi
+          git checkout -B automation/upstream-components
+          git add Sources/OutlandsCore/recipe.json
+          git commit -m 'Update pinned Sikarugir components for compatibility review'
+          git push --force-with-lease origin automation/upstream-components
+          if ! gh pr view automation/upstream-components >/dev/null 2>&1; then
+            gh pr create --head automation/upstream-components --title 'Review updated Sikarugir components' --body-file .github/upstream-pr.md --assignee "${{ github.repository_owner }}"
+          fi
+          # Explicit dispatch runs even when the PR was created using GITHUB_TOKEN.
+          gh workflow run ci.yml --ref automation/upstream-components
+          gh workflow run runtime-smoke.yml --ref automation/upstream-components

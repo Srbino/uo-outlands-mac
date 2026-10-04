@@ -1,0 +1,14 @@
+Local follow-up run, 2026-10-03. Selected evidence; paths redacted.
+
+Build complete! (3.38s)
+Test Suite 'Selected tests' started at 2026-10-03 23:39:54.363.
+Test Suite 'OutlandsInstallerPackageTests.xctest' started at 2026-10-03 23:39:54.364.
+Test Suite 'WineProcessTests' started at 2026-10-03 23:39:54.364.
+Test Case '-[OutlandsCoreTests.WineProcessTests testStopOnlyDisposableWineWrapper]' started.
+Test Case '-[OutlandsCoreTests.WineProcessTests testStopOnlyDisposableWineWrapper]' passed (3.828 seconds).
+Test Suite 'WineProcessTests' passed at 2026-10-03 23:39:58.192.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.828 (3.829) seconds
+Test Suite 'OutlandsInstallerPackageTests.xctest' passed at 2026-10-03 23:39:58.192.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.828 (3.829) seconds
+Test Suite 'Selected tests' passed at 2026-10-03 23:39:58.192.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.828 (3.829) seconds
