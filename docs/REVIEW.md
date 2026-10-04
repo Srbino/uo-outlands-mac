@@ -47,7 +47,7 @@ Local machine: Apple M4, macOS 26.5.1, Swift 6.3.2. A result from this machine i
 | --- | --- | --- |
 | Latest normal Swift run | 57 tests executed, 50 passed and 7 deliberately skipped, zero failures | Seven opt-in runtime/archive/inspection tests require explicit environment configuration; no automated UI tests |
 | Python tool checks | 11 tests passed | Does not establish actual GitHub workflow permissions or network behaviour |
-| Workflow validation | actionlint passed | Static validation only; hosted workflows have not run for this working tree |
+| Workflow validation | actionlint and [hosted macOS 14/15/26/latest matrix](https://github.com/Srbino/uo-outlands-mac/actions/runs/37199468538) passed | Beta source b783667; full-install/release workflows and signing remain unverified |
 | Release build | Warnings treated as errors; successful ad-hoc signature and self-check | Not Developer ID signed or notarized |
 | Standalone ZIP | Extracted outside the checkout; signature and bundled recipe/artwork self-check passed | Does not prove Gatekeeper acceptance of an Internet download |
 | Real runtime smoke | Previously passed in 65.8 seconds | Earlier local run; no gameplay |
@@ -67,7 +67,7 @@ These entries distinguish observed failures from review hypotheses. They are not
 | ID | Type | Concern and evidence needed |
 | --- | --- | --- |
 | R01 | Observed blocker | Earlier direct startup exited 255; staging directory registration now prevents immediate exit in retained-prefix probes. Identify cause, fix or establish a supported launch path, then prove first GUI startup, game download and login. A successful .NET probe is insufficient. |
-| R02 | Missing release evidence | No hosted matrix results, Developer ID signature, notarization or clean-Mac Gatekeeper acceptance for this change. Configure credentials/protected environment and obtain results before publication. |
+| R02 | Missing release evidence | Hosted normal matrix passed for beta source b783667. Developer ID signature, notarization and clean-Mac Gatekeeper acceptance remain missing. Configure credentials/protected environment and obtain results before publication. |
 | R03 | Missing hardware acceptance | Rosetta absent/declined, external disk unplug, actual low-space failure, reboot/resume, audio and GPU gameplay remain unverified. |
 | R04 | Archive security question | Challenge symlink/hardlink chains, paths containing newlines, malicious manifests, archive bombs, payload changes between verification and extraction, and bsdtar protections. Metadata and SHA checks are not authentication of a third-party backup. |
 | R05 | Consistency question | Metadata fingerprints are not filesystem snapshots or full content hashes. Probe same-size writes with preserved timestamps, externally launched Wine, and mutation during copy/promotion. Do not assume the lock stops other applications. |
@@ -109,3 +109,5 @@ The first full installation command can require 20 GB free and substantial downl
 The reviewer should return a prioritized finding list and separate verdicts for code/data safety, UI/UX, automation and stable-release readiness. Every blocker needs a reproduction or a clearly stated evidence gap, an owner and an acceptance condition. Re-run relevant tests after fixes. Do not turn unchecked acceptance items into passes based on code inspection alone.
 
 Stable publication requires resolving R01, successful hosted gates for the exact source revision, signing/notarization, and hardware acceptance. No review or publication is automatically authorized by generating this package.
+
+Beta integration completed through [PR #1](https://github.com/Srbino/uo-outlands-mac/pull/1), merge a8a7a70. The source tree matches the green PR matrix. No tag, release or independent approval was created. See [hosted CI evidence](review/evidence/hosted-ci.json).
