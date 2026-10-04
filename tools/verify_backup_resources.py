@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import platform
 import shutil
 from pathlib import Path
 import subprocess
@@ -35,6 +36,7 @@ def main():
         if not objects:
             raise SystemExit('Run swift test --jobs 2 first to build the core.')
         compile_command = ['swiftc', '-parse-as-library', '-warnings-as-errors',
+                           '-target', f'{platform.machine()}-apple-macosx14.6',
                            '-I', str(bindir / 'Modules'), '-I', str(bindir),
                            '-I', str(ROOT / 'Sources/CArchive'),
                            str(ROOT / 'tools/backup_memory_probe.swift'),
