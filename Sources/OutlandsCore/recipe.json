@@ -1,6 +1,6 @@
 {
-  "revision": 2,
-  "verifiedAt": "2026-10-03",
+  "revision": 3,
+  "verifiedAt": "2026-10-05",
   "engine": {
     "name": "WS12WineSikarugir11.0_1.tar.xz",
     "url": "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir11.0_1.tar.xz",
@@ -14,9 +14,9 @@
     "size": 95883080
   },
   "winetricks": {
-    "name": "winetricks-0814a5acd1d3d3d7aca1fbaa266db94169b54239.tar.gz",
-    "url": "https://github.com/Sikarugir-App/winetricks/archive/0814a5acd1d3d3d7aca1fbaa266db94169b54239.tar.gz",
-    "sha256": "425ff91f951769747bac0f4c69e55c39e12a3bb6bd0ef7388630d82d9de2bf09",
-    "size": 737739
+    "name": "winetricks-0d05e972e08eadda2429f984a606eb8f9e5f63f5.tar.gz",
+    "url": "https://github.com/Sikarugir-App/winetricks/archive/0d05e972e08eadda2429f984a606eb8f9e5f63f5.tar.gz",
+    "sha256": "7245d984c67c3f1332a77ae0c7c61e4fc22b66d6bbcf5fc6ceef55ce5b872fb1",
+    "size": 737723
   }
 }
