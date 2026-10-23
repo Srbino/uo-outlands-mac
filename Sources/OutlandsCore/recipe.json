@@ -1,6 +1,6 @@
 {
-  "revision": 2,
-  "verifiedAt": "2026-10-03",
+  "revision": 3,
+  "verifiedAt": "2026-10-23",
   "engine": {
     "name": "WS12WineSikarugir11.0_1.tar.xz",
     "url": "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir11.0_1.tar.xz",
@@ -8,15 +8,15 @@
     "size": 167322744
   },
   "template": {
-    "name": "Template-1.0.21.tar.xz",
-    "url": "https://github.com/Sikarugir-App/Template/releases/download/v1.0/Template-1.0.21.tar.xz",
-    "sha256": "bbe996e4e4375318485953d0c7818b7b4b0a4dc1f13303bcc584f99f7602f78d",
-    "size": 95883080
+    "name": "Template-1.0.24.tar.xz",
+    "url": "https://github.com/Sikarugir-App/Template/releases/download/v1.0/Template-1.0.24.tar.xz",
+    "sha256": "4b5f89eeb9ef139936bdfad33d9b420b05ea4597cb7d63376674f7a8e171321c",
+    "size": 96198448
   },
   "winetricks": {
-    "name": "winetricks-0814a5acd1d3d3d7aca1fbaa266db94169b54239.tar.gz",
-    "url": "https://github.com/Sikarugir-App/winetricks/archive/0814a5acd1d3d3d7aca1fbaa266db94169b54239.tar.gz",
-    "sha256": "425ff91f951769747bac0f4c69e55c39e12a3bb6bd0ef7388630d82d9de2bf09",
-    "size": 737739
+    "name": "winetricks-bbdf2b7d227d4b0f30b01a1e4668f35612a4cd45.tar.gz",
+    "url": "https://github.com/Sikarugir-App/winetricks/archive/bbdf2b7d227d4b0f30b01a1e4668f35612a4cd45.tar.gz",
+    "sha256": "c3fe9d398781c0758de3f8c45eef2321cafb4e2505957f02dc2e06630d4de8c8",
+    "size": 737597
   }
 }
